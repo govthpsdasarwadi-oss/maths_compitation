@@ -32,7 +32,13 @@
         @keyframes rainbow_move { to { background-position: 200% center; } }
 
         .card { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 8px 20px rgba(0,0,0,0.08); margin-top: 20px; border-top: 5px solid var(--gold); }
-        input[type="text"], input[type="password"] { width: 100%; padding: 14px; margin: 10px 0; border: 2px solid #eee; border-radius: 10px; box-sizing: border-box; font-size: 16px; outline: none; transition: 0.3s; }
+        
+        /* Updated Input & Select Styles */
+        input[type="text"], input[type="password"], select { 
+            width: 100%; padding: 14px; margin: 10px 0; border: 2px solid #eee; border-radius: 10px; 
+            box-sizing: border-box; font-size: 16px; outline: none; transition: 0.3s; background: #fff;
+        }
+        select:focus { border-color: var(--primary); }
         
         button { padding: 15px; font-size: 16px; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; transition: 0.3s; margin-top: 10px; }
         .btn-main { background: var(--primary); color: white; width: 100%; box-shadow: 0 4px 10px rgba(26, 42, 108, 0.3); }
@@ -61,13 +67,23 @@
         <div class="card">
             <label>ವಿದ್ಯಾರ್ಥಿಯ ಹೆಸರು (Student Name):</label>
             <input type="text" id="sName" placeholder="Full name in English">
+            
             <label>ತಂದೆಯ ಹೆಸರು (Father's Name):</label>
             <input type="text" id="pName" placeholder="Father's name">
+            
             <label>ತರಗತಿ (Class):</label>
-            <input type="text" id="studentClass" placeholder="e.g., 6th">
-            <label>ರೋಲ್ ನಂಬರ್ (Roll Number):</label>
-            <input type="text" id="studentrollnumber" placeholder="e.g., 12">
-            <button class="btn-main" onclick="startQuiz()">ಕ್ವಿಜ್ ಪ್ರಾರಂಭಿಸಿ (Start Quiz) ➔</button>
+            <select id="studentClass">
+                <option value="">-- ಆಯ್ಕೆ ಮಾಡಿ (Select Class) --</option>
+                <option value="5">5th Class</option>
+                <option value="6">6th Class</option>
+                <option value="7">7th Class</option>
+                <option value="8">8th Class</option>
+            </select>
+            
+            <label id="rollLabel">ರೋಲ್ ನಂಬರ್ (Roll Number):</label>
+            <input type="text" id="studentrollnumber" placeholder="Enter Roll No.">
+            
+            <button class="btn-main" id="startBtn" onclick="startQuiz()">ಕ್ವಿಜ್ ಪ್ರಾರಂಭಿಸಿ (Start Quiz) ➔</button>
         </div>
     </div>
 
@@ -78,6 +94,7 @@
             <button class="btn-main" style="background:green;" onclick="submitQuiz()">ಸಲ್ಲಿಸಿ (Finish Quiz)</button>
         </div>
     </div>
+    
 
     <div id="scorePage" class="hidden">
         <div class="header">
@@ -92,14 +109,7 @@
             <div style="overflow-x: auto;">
                 <table>
                     <thead>
-                        <tr>
-                            <th>Rank</th>
-                            <th>Student</th>
-                            <th>Father</th>
-                            <th>Class</th>
-                            <th>Score</th>
-                            <th>Action</th>
-                        </tr>
+                        <tr><th>Rank</th><th>Student</th><th>Father</th><th>Class</th><th>Roll No</th><th>Score</th><th>Action</th></tr>
                     </thead>
                     <tbody id="leaderboardBody"></tbody>
                 </table>
@@ -119,6 +129,7 @@
 </div>
 
 <script>
+    // Firebase Config (Keep your existing config)
     const firebaseConfig = {
         apiKey: "AIzaSyCDg2lvJAsZvqP1YfalJj6jpA7qTBn5qRM",
         authDomain: "mathsquizcompetitionsjs.firebaseapp.com",
@@ -175,29 +186,86 @@
         } else { alert("Wrong Password!"); }
     }
 
-    function startQuiz() {
-        if(!document.getElementById('sName').value) return alert("Please enter Name");
-        const container = document.getElementById('questionsContainer');
-        container.innerHTML = questions.map((item, i) => `
-            <div class="card question-box">
-                <span style="font-weight:bold">${i+1}. ${item.q}</span>
-                <div class="options-grid">
-                    ${item.options.map(opt => `
-                        <label class="option-card">
-                            <input type="radio" name="q${i}" value="${opt}"> ${opt}
-                        </label>
-                    `).join('')}
+    async function startQuiz() {
+        const name = document.getElementById('sName').value.trim();
+        const pName = document.getElementById('pName').value.trim();
+        const cls = document.getElementById('studentClass').value;
+        const rollStr = document.getElementById('studentrollnumber').value.trim();
+        const roll = parseInt(rollStr);
+
+        // Basic Validation
+        if(!name || !pName || !cls || !rollStr) {
+            return alert("ದಯವಿಟ್ಟು ಎಲ್ಲಾ ವಿವರಗಳನ್ನು ಭರ್ತಿ ಮಾಡಿ (Please fill all details)");
+        }
+
+        // --- CLASS WISE ROLL NUMBER VALIDATION ---
+        let isValid = false;
+        let limitMsg = "";
+
+        if(cls === "5") {
+            if(roll >= 1 && roll <= 27) isValid = true;
+            else limitMsg = "5ನೇ ತರಗತಿಗೆ ರೋಲ್ ನಂಬರ್ 1 ರಿಂದ 27 ಮಾತ್ರ ಅವಕಾಶವಿದೆ.";
+        } else if(cls === "6") {
+            if(roll >= 1 && roll <= 31) isValid = true;
+            else limitMsg = "6ನೇ ತರಗತಿಗೆ ರೋಲ್ ನಂಬರ್ 1 ರಿಂದ 31 ಮಾತ್ರ ಅವಕಾಶವಿದೆ.";
+        } else if(cls === "7") {
+            if(roll >= 1 && roll <= 33) isValid = true;
+            else limitMsg = "7ನೇ ತರಗತಿಗೆ ರೋಲ್ ನಂಬರ್ 1 ರಿಂದ 33 ಮಾತ್ರ ಅವಕಾಶವಿದೆ.";
+        } else if(cls === "8") {
+            if(roll >= 1 && roll <= 25) isValid = true;
+            else limitMsg = "8ನೇ ತರಗತಿಗೆ ರೋಲ್ ನಂಬರ್ 1 ರಿಂದ 25 ಮಾತ್ರ ಅವಕಾಶವಿದೆ.";
+        }
+
+        if(!isValid) {
+            return alert(limitMsg);
+        }
+
+        // --- SINGLE ATTEMPT CHECK ---
+        const btn = document.getElementById('startBtn');
+        btn.innerText = "Checking...";
+        btn.disabled = true;
+
+        try {
+            const check = await db.collection("mathResults")
+                .where("class", "==", cls)
+                .where("roll", "==", rollStr)
+                .get();
+
+            if(!check.empty) {
+                alert("ಈ ರೋಲ್ ನಂಬರ್ ಈಗಾಗಲೇ ಕ್ವಿಜ್ ಮುಗಿಸಿದೆ! (Already taken!)");
+                btn.innerText = "Start Quiz ➔";
+                btn.disabled = false;
+                return;
+            }
+
+            // Start Quiz
+            const container = document.getElementById('questionsContainer');
+            container.innerHTML = questions.map((item, i) => `
+                <div class="card question-box">
+                    <span style="font-weight:bold">${i+1}. ${item.q}</span>
+                    <div class="options-grid">
+                        ${item.options.map(opt => `
+                            <label class="option-card">
+                                <input type="radio" name="q${i}" value="${opt}"> ${opt}
+                            </label>
+                        `).join('')}
+                    </div>
                 </div>
-            </div>
-        `).join('');
-        document.getElementById('studentPage').classList.add('hidden');
-        document.getElementById('quizPage').classList.remove('hidden');
-        let timer = 120;
-        let t = setInterval(() => {
-            timer--;
-            document.getElementById('timer').innerText = timer;
-            if(timer <= 0) { clearInterval(t); submitQuiz(); }
-        }, 1000);
+            `).join('');
+            document.getElementById('studentPage').classList.add('hidden');
+            document.getElementById('quizPage').classList.remove('hidden');
+            
+            let timer = 120;
+            let t = setInterval(() => {
+                timer--;
+                document.getElementById('timer').innerText = timer;
+                if(timer <= 0) { clearInterval(t); submitQuiz(); }
+            }, 1000);
+
+        } catch (e) {
+            alert("Error connecting to database.");
+            btn.disabled = false;
+        }
     }
 
     async function submitQuiz() {
@@ -208,8 +276,9 @@
         });
         const res = {
             name: document.getElementById('sName').value,
-            parent: document.getElementById('pName').value,
+            father: document.getElementById('pName').value,
             class: document.getElementById('studentClass').value,
+            roll: document.getElementById('studentrollnumber').value,
             score: score,
             time: new Date()
         };
@@ -226,16 +295,16 @@
             return `<tr>
                 <td>#${rank++}</td>
                 <td>${d.name}</td>
-                <td>${d.parent || '-'}</td>
-                <td>${d.class}</td>
+                <td>${d.father || '-'}</td>
+                <td>${d.class}th</td><td>${d.roll || '-'}</td>
                 <td>${d.score}/30</td>
-                <td><button onclick="deleteRecord('${doc.id}')" style="background:red; color:white; padding:5px; border-radius:5px; font-size:10px;">Del</button></td>
+                <td><button onclick="deleteRecord('${doc.id}')" style="background:red; color:white; border-radius:5px; font-size:10px;">Del</button></td>
             </tr>`;
         }).join('');
     }
 
     async function deleteRecord(id) {
-        if(confirm("Are you sure you want to delete this result?")) {
+        if(confirm("Are you sure?")) {
             await db.collection("mathResults").doc(id).delete();
             loadLeaderboard();
         }
@@ -245,23 +314,18 @@
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF();
         const snap = await db.collection("mathResults").orderBy("score", "desc").get();
-        const rows = snap.docs.map((d, i) => [i+1, d.data().name, d.data().parent, d.data().class, d.data().score + "/30"]);
-        
-        doc.text("Govt. Higher Primary School Dasarawadi - Mental Math Results 2025", 14, 15);
-        doc.autoTable({ 
-            head: [['Rank', 'Student Name', 'Father Name', 'Class', 'Score']], 
-            body: rows, 
-            startY: 20 
-        });
-        doc.save("GHPS_Math_Results.pdf");
+        const rows = snap.docs.map((d, i) => [i+1, d.data().name, d.data().father,d.data().class, d.data().roll, d.data().score + "/30"]);
+        doc.text("Govt. Higher Primary School Dasarawadi,Maths Quiz Results 2025", 14, 15);
+        doc.autoTable({ head: [['Rank', 'Name', 'Father', 'Class','Roll', 'Score']], body: rows, startY: 20 });
+        doc.save("Results.pdf");
     }
 
     function exportCSV() {
         db.collection("mathResults").orderBy("score", "desc").get().then(snap => {
-            let csv = "Rank,Student,Father,Class,Score\n";
+            let csv = "Rank,Student,Father,Class,Roll,Score\n";
             snap.docs.forEach((d, i) => {
                 const s = d.data();
-                csv += `${i+1},${s.name},${s.parent},${s.class},${s.score}\n`;
+                csv += `${i+1},${s.name},${s.father},${s.roll},${s.class},${s.score}\n`;
             });
             const blob = new Blob([csv], { type: 'text/csv' });
             const a = document.createElement('a');
