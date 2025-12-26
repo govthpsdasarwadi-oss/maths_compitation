@@ -9,13 +9,15 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
     
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    
     <style>
         :root { --primary: #1a2a6c; --gold: #c5a059; --accent: #b21f1f; }
         body { font-family: 'Montserrat', sans-serif; background: #f0f2f5; margin: 0; padding: 10px; }
         .container { max-width: 800px; margin: auto; }
         .hidden { display: none !important; }
 
-        /* Header */
         .header { 
             background: linear-gradient(135deg, var(--primary), var(--accent)); 
             color: white; text-align: center; padding: 35px 20px; border-radius: 15px; position: relative; box-shadow: 0 4px 15px rgba(0,0,0,0.2);
@@ -29,61 +31,27 @@
         }
         @keyframes rainbow_move { to { background-position: 200% center; } }
 
-        /* Cards */
         .card { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 8px 20px rgba(0,0,0,0.08); margin-top: 20px; border-top: 5px solid var(--gold); }
         input[type="text"], input[type="password"] { width: 100%; padding: 14px; margin: 10px 0; border: 2px solid #eee; border-radius: 10px; box-sizing: border-box; font-size: 16px; outline: none; transition: 0.3s; }
-        input:focus { border-color: var(--primary); }
         
         button { padding: 15px; font-size: 16px; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; transition: 0.3s; margin-top: 10px; }
         .btn-main { background: var(--primary); color: white; width: 100%; box-shadow: 0 4px 10px rgba(26, 42, 108, 0.3); }
-        .btn-main:hover { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(26, 42, 108, 0.4); }
         .btn-admin-access { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.4); color: white; width: auto; padding: 6px 15px; position: absolute; top: 12px; right: 12px; font-size: 12px; border-radius: 6px; }
 
-        /* Quiz Options UI - IMPROVED */
         .question-box { margin-bottom: 30px; padding: 15px; border-radius: 12px; background: #fff; }
-        .question-text { font-size: 18px; font-weight: 700; color: #333; margin-bottom: 15px; display: block; }
-        
-        .options-grid { 
-            display: grid; 
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); 
-            gap: 12px; 
-        }
-
-        .option-card {
-            position: relative;
-            background: #f8f9fa;
-            border: 2px solid #eaeaea;
-            padding: 15px;
-            border-radius: 10px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            display: flex;
-            align-items: center;
-            font-weight: 500;
-        }
-
+        .options-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
+        .option-card { background: #f8f9fa; border: 2px solid #eaeaea; padding: 15px; border-radius: 10px; cursor: pointer; display: flex; align-items: center; font-weight: 500; }
         .option-card:hover { background: #eef2ff; border-color: var(--primary); }
+        .option-card input[type="radio"] { margin-right: 12px; transform: scale(1.3); }
 
-        /* Hide default radio, style the card when checked */
-        .option-card input[type="radio"] { margin-right: 12px; transform: scale(1.3); cursor: pointer; }
-
-        /* Admin Table */
-        .table-container { overflow-x: auto; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; min-width: 500px; }
-        th, td { padding: 15px; border-bottom: 1px solid #eee; text-align: left; }
-        th { background: var(--primary); color: white; font-size: 14px; }
-
-        #timer-sticky { 
-            position: sticky; top: 0; background: #fff; padding: 15px; text-align: center; 
-            font-size: 22px; font-weight: 800; color: #b21f1f; z-index: 100; 
-            border-bottom: 3px solid var(--gold); box-shadow: 0 4px 10px rgba(0,0,0,0.1); 
-        }
+        #timer-sticky { position: sticky; top: 0; background: #fff; padding: 15px; text-align: center; font-size: 22px; font-weight: 800; color: #b21f1f; z-index: 100; border-bottom: 3px solid var(--gold); }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { padding: 12px; border-bottom: 1px solid #eee; text-align: left; }
     </style>
 </head>
 <body>
 
 <div class="container">
-
     <div id="studentPage">
         <div class="header">
             <button class="btn-admin-access" onclick="toggleAdminModal()">Admin Login 🔐</button>
@@ -91,25 +59,13 @@
             <h1 style="margin: 5px 0; font-size: 22px;">🧠 ಮಾನಸಿಕ ಗಣಿತ ಸ್ಪರ್ಧೆ - 2025</h1>
         </div>
         <div class="card">
-            <label style="font-weight: bold; color: #555;">ವಿದ್ಯಾರ್ಥಿಯ ಹೆಸರು (Student Name):</label>
-            <input type="text" id="sName" placeholder="Enter full name in English">
-            
-            <label style="font-weight: bold; color: #555;">ತಂದೆಯ ಹೆಸರು (Father's Name):</label>
+            <label>ವಿದ್ಯಾರ್ಥಿಯ ಹೆಸರು (Student Name):</label>
+            <input type="text" id="sName" placeholder="Enter name">
+            <label>ತಂದೆಯ ಹೆಸರು (Father's Name):</label>
             <input type="text" id="pName" placeholder="Enter father's name">
-            
-            <label style="font-weight: bold; color: #555;">ತರಗತಿ (Class):</label>
-            <input type="text" id="studentClass" placeholder="e.g., 6th or 7th">
-            
+            <label>ತರಗತಿ (Class):</label>
+            <input type="text" id="studentClass" placeholder="e.g., 6th">
             <button class="btn-main" onclick="startQuiz()">ಕ್ವಿಜ್ ಪ್ರಾರಂಭಿಸಿ (Start Quiz) ➔</button>
-        </div>
-    </div>
-
-    <div id="adminModal" class="hidden" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); display:flex; align-items:center; justify-content:center; z-index:1000; padding: 20px;">
-        <div style="background:white; padding:30px; border-radius:15px; width:100%; max-width:350px; text-align:center;">
-            <h3 style="margin-top:0;">Admin Access</h3>
-            <input type="password" id="adminPass" placeholder="Enter Admin Password">
-            <button class="btn-main" onclick="verifyAdmin()">Login</button>
-            <button onclick="toggleAdminModal()" style="background:none; color:gray; margin-top:10px; width:100%;">Close</button>
         </div>
     </div>
 
@@ -117,41 +73,48 @@
         <div id="timer-sticky">⏱ <span id="timer">120</span> ಸೆಕೆಂಡುಗಳು</div>
         <div id="questionsContainer"></div>
         <div class="container" style="padding: 20px 0 50px 0;">
-            <button class="btn-main" style="background:green;" onclick="submitQuiz()">ಉತ್ತರಗಳನ್ನು ಸಲ್ಲಿಸಿ (Finish Quiz)</button>
+            <button class="btn-main" style="background:green;" onclick="submitQuiz()">ಸಲ್ಲಿಸಿ (Finish Quiz)</button>
         </div>
     </div>
 
     <div id="scorePage" class="hidden">
-        <div class="header">
-            <span class="rainbow-school-name">ಸರಕಾರಿ ಹಿರಿಯ ಪ್ರಾಥಮಿಕ ಶಾಲೆ ದಾಸರವಾಡಿ</span>
-            <h1>📊 Result Leaderboard</h1>
-        </div>
+        <div class="header"><h1>📊 Leaderboard</h1></div>
         <div class="card">
-            <div style="margin-bottom: 20px; display: flex; gap: 10px; flex-direction: row;">
-                <button onclick="downloadWholeResultsPDF()" style="background:#e74c3c; color:white; flex:1;">Download PDF</button>
-                <button onclick="exportCSV()" style="background:#1D6F42; color:white; flex:1;">Download Excel</button>
+            <div style="display: flex; gap: 10px;">
+                <button onclick="downloadPDF()" style="background:#e74c3c; color:white; flex:1;">PDF</button>
+                <button onclick="location.reload()" style="background:#eee; flex:1;">Logout</button>
             </div>
-            <div class="table-container">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Rank</th>
-                            <th>Student</th>
-                            <th>Class</th>
-                            <th>Score</th>
-                            <th>Action</th>
-                        </tr>
-                    </thead>
-                    <tbody id="leaderboardBody"></tbody>
-                </table>
-            </div>
-            <button onclick="location.reload()" style="background:#eee; color:#333; width: 100%; margin-top: 20px;">Logout / Back</button>
+            <table>
+                <thead><tr><th>Rank</th><th>Name</th><th>Class</th><th>Score</th></tr></thead>
+                <tbody id="leaderboardBody"></tbody>
+            </table>
         </div>
     </div>
 
+    <div id="adminModal" class="hidden" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); display:flex; align-items:center; justify-content:center; z-index:1000;">
+        <div style="background:white; padding:30px; border-radius:15px; width:300px; text-align:center;">
+            <h3>Admin Login</h3>
+            <input type="password" id="adminPass" placeholder="Password">
+            <button class="btn-main" onclick="verifyAdmin()">Login</button>
+            <button onclick="toggleAdminModal()" style="background:none; color:gray; width:100%;">Close</button>
+        </div>
+    </div>
 </div>
 
 <script>
+    // --- STEP 1: FILL THESE FROM FIREBASE ---
+    const firebaseConfig = {
+        apiKey: "AIzaSyCDg2lvJAsZvqP1YfalJj6jpA7qTBn5qRM",
+        authDomain: "mathsquizcompetitionsjs.firebaseapp.com",
+        projectId: "mathsquizcompetitionsjs",
+        storageBucket: "mathsquizcompetitionsjs.firebasestorage.app",
+        messagingSenderId: "697659887210",
+        appId: "1:697659887210:web:21d4f2a4244093466b0413"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
     const questions = [
         { q: "45 + 32 = ?", options: ["77", "87", "75", "80"], a: "77" },
         { q: "100 - 37 = ?", options: ["63", "73", "53", "67"], a: "63" },
@@ -166,17 +129,17 @@
         { q: "84 - 29 = ?", options: ["55", "65", "45", "59"], a: "55" },
         { q: "9 × 13 = ?", options: ["107", "117", "127", "113"], a: "117" },
         { q: "100 ÷ 4 = ?", options: ["20", "25", "30", "50"], a: "25" },
-        { q: "12 ರ ವರ್ಗ ?", options: ["124", "144", "134", "154"], a: "144" },
-        { q: "25 ರ ವರ್ಗಮೂಲ ?", options: ["5", "10", "15", "25"], a: "5" },
+        { q: "12 ರ ವರ್ಗ (12^2) ?", options: ["124", "144", "134", "154"], a: "144" },
+        { q: "25 ರ ವರ್ಗಮೂಲ (sqrt 25) ?", options: ["5", "10", "15", "25"], a: "5" },
         { q: "550 + 450 = ?", options: ["900", "1000", "1100", "950"], a: "1000" },
         { q: "500 - 199 = ?", options: ["301", "311", "299", "300"], a: "301" },
         { q: "50 × 20 = ?", options: ["500", "1000", "2000", "1500"], a: "1000" },
         { q: "64 ÷ 8 = ?", options: ["6", "7", "8", "9"], a: "8" },
-        { q: "15 ರ ವರ್ಗ ?", options: ["225", "215", "205", "250"], a: "225" },
+        { q: "15 ರ ವರ್ಗ (15^2) ?", options: ["225", "215", "205", "250"], a: "225" },
         { q: "18 + 24 + 6 = ?", options: ["42", "48", "50", "54"], a: "48" },
         { q: "1000 - 450 = ?", options: ["550", "650", "450", "500"], a: "550" },
         { q: "500 ÷ 5 = ?", options: ["50", "100", "150", "200"], a: "100" },
-        { q: "81 ರ ವರ್ಗಮೂಲ ?", options: ["7", "8", "9", "11"], a: "9" },
+        { q: "81 ರ ವರ್ಗಮೂಲ (sqrt 81) ?", options: ["7", "8", "9", "11"], a: "9" },
         { q: "1 ಕೆಜಿಯಲ್ಲಿ ಎಷ್ಟು ಗ್ರಾಂ ?", options: ["100", "500", "1000", "100"], a: "1000" },
         { q: "ಒಂದು ಗಂಟೆಗೆ ಎಷ್ಟು ನಿಮಿಷ ?", options: ["30", "60", "100", "120"], a: "60" },
         { q: "20 ರ 10% ಎಷ್ಟು ?", options: ["1", "2", "5", "10"], a: "2" },
@@ -189,7 +152,7 @@
 
     function verifyAdmin() {
         if(document.getElementById('adminPass').value === "Sairam@123") {
-            document.getElementById('adminModal').classList.add('hidden');
+            toggleAdminModal();
             document.getElementById('studentPage').classList.add('hidden');
             document.getElementById('scorePage').classList.remove('hidden');
             loadLeaderboard();
@@ -197,113 +160,66 @@
     }
 
     function startQuiz() {
-        if(!document.getElementById('sName').value) return alert("Please enter Student Name");
+        if(!document.getElementById('sName').value) return alert("Please enter Name");
         const container = document.getElementById('questionsContainer');
         container.innerHTML = questions.map((item, i) => `
             <div class="card question-box">
-                <span class="question-text">${i+1}. ${item.q}</span>
+                <span style="font-weight:bold">${i+1}. ${item.q}</span>
                 <div class="options-grid">
                     ${item.options.map(opt => `
                         <label class="option-card">
-                            <input type="radio" name="q${i}" value="${opt}">
-                            <span>${opt}</span>
+                            <input type="radio" name="q${i}" value="${opt}"> ${opt}
                         </label>
                     `).join('')}
                 </div>
             </div>
         `).join('');
-
         document.getElementById('studentPage').classList.add('hidden');
         document.getElementById('quizPage').classList.remove('hidden');
-
-        let time = 120;
+        let timer = 120;
         let t = setInterval(() => {
-            time--;
-            document.getElementById('timer').innerText = time;
-            if(time <= 0) { clearInterval(t); submitQuiz(); }
+            timer--;
+            document.getElementById('timer').innerText = timer;
+            if(timer <= 0) { clearInterval(t); submitQuiz(); }
         }, 1000);
     }
 
-    function submitQuiz() {
+    async function submitQuiz() {
         let score = 0;
         questions.forEach((item, i) => {
-            const selected = document.querySelector(`input[name="q${i}"]:checked`)?.value;
-            if(selected === item.a) score++;
+            const sel = document.querySelector(`input[name="q${i}"]:checked`)?.value;
+            if(sel === item.a) score++;
         });
-
-        const result = {
-            id: Date.now(),
+        const res = {
             name: document.getElementById('sName').value,
             parent: document.getElementById('pName').value,
             class: document.getElementById('studentClass').value,
             score: score,
-            date: new Date().toLocaleDateString()
+            time: new Date()
         };
-
-        let all = JSON.parse(localStorage.getItem('mathResults')) || [];
-        all.push(result);
-        localStorage.setItem('mathResults', JSON.stringify(all));
-
-        alert("ಧನ್ಯವಾದಗಳು! ನಿಮ್ಮ ಉತ್ತರಗಳನ್ನು ಸಲ್ಲಿಸಲಾಗಿದೆ.");
+        await db.collection("mathResults").add(res);
+        alert("ಧನ್ಯವಾದಗಳು! ಸಲ್ಲಿಸಲಾಗಿದೆ. (Submitted!)");
         location.reload();
     }
 
-    function loadLeaderboard() {
-        let scores = JSON.parse(localStorage.getItem('mathResults')) || [];
-        scores.sort((a, b) => b.score - a.score);
-        document.getElementById('leaderboardBody').innerHTML = scores.map((s, i) => `
-            <tr>
-                <td><b>#${i+1}</b></td>
-                <td>${s.name}</td>
-                <td>${s.class}</td>
-                <td style="color:green; font-weight:bold;">${s.score}/30</td>
-                <td><button style="background:#ff4757; color:white; padding:5px 10px; border-radius:5px; font-size:12px;" onclick="deleteRecord(${s.id})">Del</button></td>
-            </tr>
-        `).join('');
+    async function loadLeaderboard() {
+        const snap = await db.collection("mathResults").orderBy("score", "desc").get();
+        let rank = 1;
+        document.getElementById('leaderboardBody').innerHTML = snap.docs.map(doc => {
+            const d = doc.data();
+            return `<tr><td>#${rank++}</td><td>${d.name}</td><td>${d.class}</td><td>${d.score}/30</td></tr>`;
+        }).join('');
     }
 
-    function deleteRecord(id) {
-        if(confirm("Are you sure?")) {
-            let all = JSON.parse(localStorage.getItem('mathResults')).filter(s => s.id !== id);
-            localStorage.setItem('mathResults', JSON.stringify(all));
-            loadLeaderboard();
-        }
-    }
-
-    function downloadWholeResultsPDF() {
+    async function downloadPDF() {
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF();
-        let scores = JSON.parse(localStorage.getItem('mathResults')) || [];
-        scores.sort((a, b) => b.score - a.score);
-
-        doc.setFontSize(22);
-        doc.setTextColor(26, 42, 108);
-        doc.text("GOVT. HIGHER PRIMARY SCHOOL DASARAWADI", 105, 20, { align: "center" });
-        
-        doc.setFontSize(14);
-        doc.setTextColor(100);
-        doc.text("MENTAL MATH COMPETITION - 2025", 105, 30, { align: "center" });
-
-        const tableHead = [['Rank', 'Student Name', 'Father Name', 'Class', 'Score']];
-        const tableBody = scores.map((s, i) => [i + 1, s.name, s.parent, s.class, s.score + "/30"]);
-
-        doc.autoTable({
-            startY: 40,
-            head: tableHead,
-            body: tableBody,
-            theme: 'striped',
-            headStyles: { fillColor: [26, 42, 108] }
-        });
-        doc.save('GHPS_Results_2025.pdf');
-    }
-
-    function exportCSV() {
-        let scores = JSON.parse(localStorage.getItem('mathResults')) || [];
-        let csv = "Rank,Student,Father,Class,Score\n" + scores.map((s,i)=>`${i+1},${s.name},${s.parent},${s.class},${s.score}`).join("\n");
-        let blob = new Blob([csv], { type: 'text/csv' });
-        let a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'Math_Results.csv'; a.click();
+        const snap = await db.collection("mathResults").orderBy("score", "desc").get();
+        const rows = snap.docs.map((d, i) => [i+1, d.data().name, d.data().class, d.data().score]);
+        doc.text("GHPS Dasaravadi - Results", 14, 15);
+        doc.autoTable({ head: [['Rank', 'Name', 'Class', 'Score']], body: rows, startY: 20 });
+        doc.save("results.pdf");
     }
 </script>
-
 </body>
 </html>
