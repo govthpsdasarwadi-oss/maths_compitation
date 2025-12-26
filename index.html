@@ -60,11 +60,13 @@
         </div>
         <div class="card">
             <label>ವಿದ್ಯಾರ್ಥಿಯ ಹೆಸರು (Student Name):</label>
-            <input type="text" id="sName" placeholder="Enter name">
+            <input type="text" id="sName" placeholder="Full name in English">
             <label>ತಂದೆಯ ಹೆಸರು (Father's Name):</label>
-            <input type="text" id="pName" placeholder="Enter father's name">
+            <input type="text" id="pName" placeholder="Father's name">
             <label>ತರಗತಿ (Class):</label>
             <input type="text" id="studentClass" placeholder="e.g., 6th">
+            <label>ರೋಲ್ ನಂಬರ್ (Roll Number):</label>
+            <input type="text" id="studentrollnumber" placeholder="e.g., 12">
             <button class="btn-main" onclick="startQuiz()">ಕ್ವಿಜ್ ಪ್ರಾರಂಭಿಸಿ (Start Quiz) ➔</button>
         </div>
     </div>
@@ -78,16 +80,31 @@
     </div>
 
     <div id="scorePage" class="hidden">
-        <div class="header"><h1>📊 Leaderboard</h1></div>
+        <div class="header">
+            <span class="rainbow-school-name">ಸರಕಾರಿ ಹಿರಿಯ ಪ್ರಾಥಮಿಕ ಶಾಲೆ ದಾಸರವಾಡಿ</span>
+            <h1>📊 Result Leaderboard</h1>
+        </div>
         <div class="card">
-            <div style="display: flex; gap: 10px;">
-                <button onclick="downloadPDF()" style="background:#e74c3c; color:white; flex:1;">PDF</button>
-                <button onclick="location.reload()" style="background:#eee; flex:1;">Logout</button>
+            <div style="margin-bottom: 20px; display: flex; gap: 10px;">
+                <button onclick="downloadWholeResultsPDF()" style="background:#e74c3c; color:white; flex:1;">Download PDF</button>
+                <button onclick="exportCSV()" style="background:#1D6F42; color:white; flex:1;">Download Excel</button>
             </div>
-            <table>
-                <thead><tr><th>Rank</th><th>Name</th><th>Class</th><th>Score</th></tr></thead>
-                <tbody id="leaderboardBody"></tbody>
-            </table>
+            <div style="overflow-x: auto;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Rank</th>
+                            <th>Student</th>
+                            <th>Father</th>
+                            <th>Class</th>
+                            <th>Score</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="leaderboardBody"></tbody>
+                </table>
+            </div>
+            <button onclick="location.reload()" style="background:#eee; color:#333; width: 100%; margin-top: 20px;">Logout / Back</button>
         </div>
     </div>
 
@@ -102,7 +119,6 @@
 </div>
 
 <script>
-    // --- STEP 1: FILL THESE FROM FIREBASE ---
     const firebaseConfig = {
         apiKey: "AIzaSyCDg2lvJAsZvqP1YfalJj6jpA7qTBn5qRM",
         authDomain: "mathsquizcompetitionsjs.firebaseapp.com",
@@ -207,20 +223,53 @@
         let rank = 1;
         document.getElementById('leaderboardBody').innerHTML = snap.docs.map(doc => {
             const d = doc.data();
-            return `<tr><td>#${rank++}</td><td>${d.name}</td><td>${d.class}</td><td>${d.score}/30</td></tr>`;
+            return `<tr>
+                <td>#${rank++}</td>
+                <td>${d.name}</td>
+                <td>${d.parent || '-'}</td>
+                <td>${d.class}</td>
+                <td>${d.score}/30</td>
+                <td><button onclick="deleteRecord('${doc.id}')" style="background:red; color:white; padding:5px; border-radius:5px; font-size:10px;">Del</button></td>
+            </tr>`;
         }).join('');
     }
 
-    async function downloadPDF() {
+    async function deleteRecord(id) {
+        if(confirm("Are you sure you want to delete this result?")) {
+            await db.collection("mathResults").doc(id).delete();
+            loadLeaderboard();
+        }
+    }
+
+    async function downloadWholeResultsPDF() {
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF();
         const snap = await db.collection("mathResults").orderBy("score", "desc").get();
-        const rows = snap.docs.map((d, i) => [i+1, d.data().name, d.data().class, d.data().score]);
-        doc.text("Govt. Higher Primary School Dasarawadi - Results", 14, 15);
-        doc.autoTable({ head: [['Rank', 'Name', 'Father Name', 'Class', 'Score']], body: rows, startY: 20 });
-        doc.save("results.pdf");
+        const rows = snap.docs.map((d, i) => [i+1, d.data().name, d.data().parent, d.data().class, d.data().score + "/30"]);
+        
+        doc.text("Govt. Higher Primary School Dasarawadi - Mental Math Results 2025", 14, 15);
+        doc.autoTable({ 
+            head: [['Rank', 'Student Name', 'Father Name', 'Class', 'Score']], 
+            body: rows, 
+            startY: 20 
+        });
+        doc.save("GHPS_Math_Results.pdf");
+    }
+
+    function exportCSV() {
+        db.collection("mathResults").orderBy("score", "desc").get().then(snap => {
+            let csv = "Rank,Student,Father,Class,Score\n";
+            snap.docs.forEach((d, i) => {
+                const s = d.data();
+                csv += `${i+1},${s.name},${s.parent},${s.class},${s.score}\n`;
+            });
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = 'Math_Results.csv';
+            a.click();
+        });
     }
 </script>
 </body>
 </html>
-
