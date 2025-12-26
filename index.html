@@ -12,11 +12,11 @@
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
     
     <style>
-        :root { --primary: #1a2a6c; --gold: #c5a059; --accent: #b21f1f; --live: #28a745; }
+        :root { --primary: #1a2a6c; --gold: #c5a059; --accent: #b21f1f; }
         body { font-family: 'Montserrat', sans-serif; background: #f0f2f5; margin: 0; padding: 10px; }
         .container { max-width: 800px; margin: auto; }
         .hidden { display: none !important; }
-        .header { background: linear-gradient(135deg, var(--primary), var(--accent)); color: white; text-align: center; padding: 35px 20px; border-radius: 15px; position: relative; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
+        .header { background: linear-gradient(135deg, var(--primary), var(--accent)); color: white; text-align: center; padding: 35px 20px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
         
         .rainbow-school-name { 
             font-family: 'Cinzel', serif; font-size: 24px; font-weight: bold; margin-bottom: 10px; 
@@ -35,19 +35,18 @@
 
         .card { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 8px 20px rgba(0,0,0,0.08); margin-top: 20px; border-top: 5px solid var(--gold); }
         input, select { width: 100%; padding: 14px; margin: 10px 0; border: 2px solid #eee; border-radius: 10px; box-sizing: border-box; font-size: 16px; outline: none; }
-        
         #sName, #pName { text-transform: uppercase; }
 
         button { padding: 15px; font-size: 16px; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; transition: 0.3s; margin-top: 10px; }
         .btn-main { background: var(--primary); color: white; width: 100%; }
         .btn-main:disabled { background: #ccc; cursor: not-allowed; }
         
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 13px; }
+        th, td { padding: 10px; border-bottom: 1px solid #eee; text-align: left; }
         .question-box { margin-bottom: 30px; padding: 15px; border-radius: 12px; background: #fff; }
         .options-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
         .option-card { background: #f8f9fa; border: 2px solid #eaeaea; padding: 15px; border-radius: 10px; cursor: pointer; display: flex; align-items: center; }
         #timer-sticky { position: sticky; top: 0; background: #fff; padding: 15px; text-align: center; font-size: 22px; font-weight: 800; color: #b21f1f; z-index: 100; border-bottom: 3px solid var(--gold); }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 14px; }
-        th, td { padding: 12px; border-bottom: 1px solid #eee; text-align: left; }
     </style>
 </head>
 <body>
@@ -84,24 +83,24 @@
 
     <div id="scorePage" class="hidden">
         <div class="header"><span class="rainbow-school-name">ಸರಕಾರಿ ಹಿರಿಯ ಪ್ರಾಥಮಿಕ ಶಾಲೆ, ದಾಸರವಾಡಿ</span><h1>📊 Admin Panel</h1></div>
-        <div class="card" style="border-top: 5px solid #1a2a6c;">
-            <h3>🕒 Set Competition Time</h3>
+        <div class="card">
+            <h3>🕒 Competition Schedule</h3>
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                <div><label style="font-size:12px;">Start:</label><input type="datetime-local" id="schedStart"></div>
-                <div><label style="font-size:12px;">End:</label><input type="datetime-local" id="schedEnd"></div>
+                <div><label>Start:</label><input type="datetime-local" id="schedStart"></div>
+                <div><label>End:</label><input type="datetime-local" id="schedEnd"></div>
             </div>
-            <button onclick="saveSchedule()" style="background:var(--primary); color:white; width:100%;">Update & Make Live</button>
-            <button onclick="resetSchedule()" style="background:#666; color:white; width:100%; margin-top:5px; font-size:12px;">Clear Schedule</button>
+            <button onclick="saveSchedule()" class="btn-main">Update Schedule</button>
+            <button onclick="resetSchedule()" style="background:#666; color:white; width:100%;">Reset Schedule (Stop Quiz)</button>
         </div>
         <div class="card">
             <div style="margin-bottom: 20px; display: flex; gap: 10px; flex-wrap: wrap;">
-                <button onclick="downloadWholeResultsPDF()" style="background:#e74c3c; color:white; flex:1;">PDF</button>
-                <button onclick="exportCSV()" style="background:#1D6F42; color:white; flex:1;">Excel</button>
-                <button onclick="clearAllData()" style="background:#333; color:white; flex:1;">Wipe All</button>
+                <button onclick="downloadWholeResultsPDF()" style="background:#e74c3c; color:white; flex:1;">Download PDF</button>
+                <button onclick="exportCSV()" style="background:#1D6F42; color:white; flex:1;">Export Excel</button>
+                <button onclick="clearAllData()" style="background:#333; color:white; flex:1;">Wipe All Data</button>
             </div>
             <div style="overflow-x: auto;">
-                <table id="resultsTable">
-                    <thead><tr><th>Rank</th><th>Student</th><th>Class</th><th>Roll</th><th>Score</th><th>Action</th></tr></thead>
+                <table>
+                    <thead><tr><th>Rank</th><th>Student</th><th>Father</th><th>Class</th><th>Roll</th><th>Score</th><th>Action</th></tr></thead>
                     <tbody id="leaderboardBody"></tbody>
                 </table>
             </div>
@@ -120,6 +119,7 @@
 </div>
 
 <script>
+    // 1. FIREBASE CONFIG
     const firebaseConfig = {
         apiKey: "AIzaSyCDg2lvJAsZvqP1YfalJj6jpA7qTBn5qRM",
         authDomain: "mathsquizcompetitionsjs.firebaseapp.com",
@@ -131,33 +131,29 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    // Secret Hidden Click Logic
+    // 2. SECRET DOOR LOGIC
     let clicks = 0;
     let clickTimeout;
     document.getElementById('secretTrigger').onclick = function() {
         clicks++;
         clearTimeout(clickTimeout);
-        if(clicks === 5) {
-            clicks = 0;
-            toggleAdminModal();
-        }
-        clickTimeout = setTimeout(() => { clicks = 0; }, 2500); // Reset clicks if too slow
+        if(clicks === 5) { clicks = 0; toggleAdminModal(); }
+        clickTimeout = setTimeout(() => { clicks = 0; }, 2500);
     };
 
-    // Simple Password Check (No Hash)
+    function toggleAdminModal() { document.getElementById('adminModal').classList.toggle('hidden'); }
+
     function verifyAdmin() {
-        const input = document.getElementById('adminPass').value;
-        if(input === "Sairam@123") {
+        if(document.getElementById('adminPass').value === "Sairam@123") {
             toggleAdminModal();
             document.getElementById('studentPage').classList.add('hidden');
             document.getElementById('scorePage').classList.remove('hidden');
             loadLeaderboard();
             loadScheduleInputs();
-        } else { 
-            alert("Wrong Password!"); 
-        }
+        } else { alert("Wrong Password!"); }
     }
 
+    // 3. QUIZ CONTENT
     const questions = [
         { q: "45 + 32 = ?", options: ["77", "87", "75", "80"], a: "77" },
         { q: "100 - 37 = ?", options: ["63", "73", "53", "67"], a: "63" },
@@ -191,12 +187,13 @@
         { q: "100 ರ ಅರ್ಧ?", options: ["25", "40", "50", "60"], a: "50" }
     ];
 
+    // 4. MAIN FUNCTIONS
     async function updateStatus() {
         const doc = await db.collection("settings").doc("quizTime").get();
         const banner = document.getElementById('statusBanner');
         const startBtn = document.getElementById('startBtn');
         if(!doc.exists || !doc.data().start) {
-            banner.innerText = "ಕ್ವಿಜ್ ಇನ್ನೂ ಪ್ರಾರಂಭವಾಗಿಲ್ಲ...!";
+            banner.className="status-upcoming"; banner.innerText = "ಕ್ವಿಜ್ ಇನ್ನೂ ಪ್ರಾರಂಭವಾಗಿಲ್ಲ...!";
             startBtn.disabled = true; return;
         }
         const now = new Date(), start = new Date(doc.data().start), end = new Date(doc.data().end);
@@ -205,8 +202,6 @@
         else { banner.className = "status-closed"; banner.innerText = "Closed!"; startBtn.disabled = true; }
     }
     setInterval(updateStatus, 5000); updateStatus();
-
-    function toggleAdminModal() { document.getElementById('adminModal').classList.toggle('hidden'); }
 
     async function startQuiz() {
         const name = document.getElementById('sName').value.trim();
@@ -247,37 +242,75 @@
         alert("ಸಲ್ಲಿಸಲಾಗಿದೆ!"); location.reload();
     }
 
+    // 5. ADMIN UTILITIES
     async function loadLeaderboard() {
         const snap = await db.collection("mathResults").orderBy("score", "desc").get();
         let rank = 1;
         document.getElementById('leaderboardBody').innerHTML = snap.docs.map(doc => {
             const d = doc.data();
-            return `<tr><td>#${rank++}</td><td>${d.name}</td><td>${d.class}th</td><td>${d.roll}</td><td>${d.score}/30</td>
-            <td><button onclick="deleteRecord('${doc.id}')" style="background:red;color:white;padding:5px;">Del</button></td></tr>`;
+            return `<tr><td>#${rank++}</td><td>${d.name}</td><td>${d.father}</td><td>${d.class}th</td><td>${d.roll}</td><td>${d.score}/30</td>
+            <td><button onclick="deleteRecord('${doc.id}')" style="background:red;color:white;padding:5px;border-radius:5px;">Del</button></td></tr>`;
         }).join('');
+    }
+
+    async function deleteRecord(id) {
+        if(confirm("Delete this student record?")) {
+            await db.collection("mathResults").doc(id).delete();
+            loadLeaderboard();
+        }
     }
 
     async function saveSchedule() {
         const start = document.getElementById('schedStart').value;
         const end = document.getElementById('schedEnd').value;
+        if(!start || !end) return alert("Set both times!");
         await db.collection("settings").doc("quizTime").set({ start, end });
-        alert("Schedule Saved!");
+        alert("Schedule Saved!"); updateStatus();
+    }
+
+    async function resetSchedule() {
+        if(confirm("Reset schedule? This will lock the quiz for students.")) {
+            await db.collection("settings").doc("quizTime").delete();
+            document.getElementById('schedStart').value = "";
+            document.getElementById('schedEnd').value = "";
+            alert("Schedule Reset!"); updateStatus();
+        }
+    }
+
+    async function clearAllData() {
+        if(confirm("WARNING: Delete ALL results?")) {
+            const snap = await db.collection("mathResults").get();
+            const batch = db.batch();
+            snap.docs.forEach(doc => batch.delete(doc.ref));
+            await batch.commit();
+            alert("All results wiped!"); loadLeaderboard();
+        }
+    }
+
+    function exportCSV() {
+        let csv = "Rank,Name,Father,Class,Roll,Score\n";
+        document.querySelectorAll("#leaderboardBody tr").forEach(row => {
+            csv += Array.from(row.querySelectorAll("td")).slice(0,6).map(c => c.innerText.replace("#","")).join(",") + "\n";
+        });
+        const blob = new Blob([csv], { type: 'text/csv' });
+        const a = document.createElement('a');
+        a.href = window.URL.createObjectURL(blob); a.download = 'Quiz_Results.csv'; a.click();
     }
 
     async function loadScheduleInputs() {
         const doc = await db.collection("settings").doc("quizTime").get();
         if(doc.exists) {
-            document.getElementById('schedStart').value = doc.data().start || "";
-            document.getElementById('schedEnd').value = doc.data().end || "";
+            document.getElementById('schedStart').value = doc.data().start;
+            document.getElementById('schedEnd').value = doc.data().end;
         }
     }
 
     async function downloadWholeResultsPDF() {
         const { jsPDF } = window.jspdf; const doc = new jsPDF();
         const snap = await db.collection("mathResults").orderBy("score", "desc").get();
-        const rows = snap.docs.map((d, i) => [i+1, d.data().name, d.data().class, d.data().roll, d.data().score + "/30"]);
-        doc.text("GHPS Dasarawadi Results 2025", 14, 15);
-        doc.autoTable({ head: [['Rank', 'Name', 'Class', 'Roll', 'Score']], body: rows, startY: 20 });
+        const rows = snap.docs.map((d, i) => [i+1, d.data().name, d.data().father, d.data().class, d.data().roll, d.data().score + "/30"]);
+        doc.text("Govt. Higher Primary School Dasarawadi, Maths Quiz Results 2025", 14, 15);
+        doc.autoTable({ head: [['Rank', 'Name','Father', 'Class', 'Roll', 'Score']], body: rows, startY: 20 });
         doc.save("Results.pdf");
     }
 </script>
