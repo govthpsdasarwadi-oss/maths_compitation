@@ -216,10 +216,11 @@
         const doc = new jsPDF();
         const snap = await db.collection("mathResults").orderBy("score", "desc").get();
         const rows = snap.docs.map((d, i) => [i+1, d.data().name, d.data().class, d.data().score]);
-        doc.text("GHPS Dasaravadi - Results", 14, 15);
-        doc.autoTable({ head: [['Rank', 'Name', 'Class', 'Score']], body: rows, startY: 20 });
+        doc.text("Govt. Higher Primary School Dasarawadi - Results", 14, 15);
+        doc.autoTable({ head: [['Rank', 'Name', 'Father Name', 'Class', 'Score']], body: rows, startY: 20 });
         doc.save("results.pdf");
     }
 </script>
 </body>
 </html>
+
