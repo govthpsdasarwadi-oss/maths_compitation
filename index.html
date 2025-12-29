@@ -158,9 +158,26 @@
         <div id="questionsContainer"></div>
         <button class="btn-main" style="background:green; margin-bottom:50px;" onclick="submitQuiz()">ಸಲ್ಲಿಸಿ (Finish Quiz)</button>
     </div>
+<!-- THANK YOU PAGE -->
+<div id="thankYouPage" class="hidden">
+  <div class="header">
+    <div class="rainbow">ಸರಕಾರಿ ಹಿರಿಯ ಪ್ರಾಥಮಿಕ ಶಾಲೆ, ದಾಸರವಾಡಿ</div>
+    <h2>🙏 ಧನ್ಯವಾದಗಳು 🙏</h2>
+  </div>
 
+  <div class="card" style="text-align:center">
+    <h3 style="color:green">Quiz Submitted Successfully</h3>
+    <p id="finalName"></p>
+    <p style="color:red;font-weight:bold">ಕೇವಲ ಒಂದು ಪ್ರಯತ್ನವನ್ನು ಅನುಮತಿಸಲಾಗಿದೆ</p>
+
+    <img src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEjTs7bWODsf6kahAsLK9E_U3a-hbACRye0_PQ1gQTejHbY72xVbW4LtZOub63G9Fx2ABvfY7MUONnkr9WJrG7NVMlqXwGEPgqqnbnf2x95iQFs2Ix0lJKvc2ggoJPshCxZqdTDPgfAPsEeTI9arQZPL1cmSl4vnG0v3e4eWocE3OMLesDxfjZ0HayaZLCID/s1600/220028.gif"
+         width="280" height="130" loading="lazy">
+  </div>
+</div>
+
+</div>
     <div id="scorePage" class="hidden">
-        <div class="header"><span class="rainbow-school-name">GHPS DASARAVADI</span><h1>📊 Admin Panel</h1></div>
+        <div class="header"><span class="rainbow-school-name">ಸರಕಾರಿ ಹಿರಿಯ ಪ್ರಾಥಮಿಕ ಶಾಲೆ, ದಾಸರವಾಡಿ</span><h1>📊 Admin Panel</h1></div>
         <div class="card">
             <h3>🕒 Competition Schedule</h3>
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
@@ -194,7 +211,6 @@
             <button onclick="toggleAdminModal()" style="background:none; color:gray;">Close</button>
         </div>
     </div>
-</div>
 
 <script>
     // 1. FIREBASE CONFIG
@@ -306,20 +322,36 @@
         }, 1000);
     }
 
-    async function submitQuiz() {
-        let score = 0;
-        questions.forEach((item, i) => {
-            if(document.querySelector(`input[name="q${i}"]:checked`)?.value === item.a) score++;
-        });
-        await db.collection("mathResults").add({
-            name: document.getElementById('sName').value.toUpperCase(),
-            father: document.getElementById('pName').value.toUpperCase(),
-            class: document.getElementById('studentClass').value,
-            roll: document.getElementById('studentrollnumber').value,
-            score: score, timestamp: new Date()
-        });
-        alert("ಸಲ್ಲಿಸಲಾಗಿದೆ (Submitted Successfully)!"); location.reload();
-    }
+    
+async function submitQuiz() {
+    let score = 0;
+
+    questions.forEach((item, i) => {
+        if (
+            document.querySelector(`input[name="q${i}"]:checked`)?.value === item.a
+        ) {
+            score++;
+        }
+    });
+
+    // Save to Firebase
+    await db.collection("mathResults").add({
+        name: document.getElementById('sName').value.toUpperCase(),
+        father: document.getElementById('pName').value.toUpperCase(),
+        class: document.getElementById('studentClass').value,
+        roll: document.getElementById('studentrollnumber').value,
+        score: score,
+        timestamp: new Date()
+    });
+
+    // Show Thank You page
+    document.getElementById('quizPage').classList.add('hidden');
+    document.getElementById('thankYouPage').classList.remove('hidden');
+
+    // Show student name (NO score)
+    document.getElementById('finalName').innerText =
+        "ವಿದ್ಯಾರ್ಥಿ ಹೆಸರು: " + document.getElementById('sName').value;
+}
 
     // 5. ADMIN UTILITIES
     async function loadLeaderboard() {
