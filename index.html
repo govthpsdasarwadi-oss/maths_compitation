@@ -148,7 +148,9 @@
                 <option value="5">5ನೇ ತರಗತಿ</option><option value="6">6ನೇ ತರಗತಿ</option><option value="7">7ನೇ ತರಗತಿ</option><option value="8">8ನೇ ತರಗತಿ</option>
             </select>
             <label>ರೋಲ್ ನಂಬರ್ (Roll Number):</label>
-            <input type="number" id="studentrollnumber" placeholder="Enter Roll No." oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+            <input type="number" id="studentrollnumber" placeholder="Enter Roll No." 
+       oninput="this.value = this.value.replace(/[^0-9]/g, ''); checkRollNumber()">
+
             <button class="btn-main" id="startBtn" onclick="startQuiz()" disabled>ಕ್ವಿಜ್ ಪ್ರಾರಂಭಿಸಿ (Start Quiz) ➔</button>
         </div>
     </div>
@@ -224,6 +226,49 @@
     };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
+    // ✅ Prevent multiple attempts by checking roll number
+async function checkRollNumber() {
+    const roll = document.getElementById('studentrollnumber').value.trim();
+    const cls = document.getElementById('studentClass').value;
+    const startBtn = document.getElementById('startBtn');
+
+    if(!roll || !cls) { 
+        startBtn.disabled = true; 
+        return; 
+    }
+
+    const snap = await db.collection("mathResults")
+                         .where("roll", "==", roll)
+                         .where("class", "==", cls)
+                         .get();
+
+    startBtn.disabled = !snap.empty ? true : false; // disable if already attempted
+}
+
+    
+    async function startQuiz() {
+    const name = document.getElementById('sName').value.trim();
+    const pName = document.getElementById('pName').value.trim();
+    const cls = document.getElementById('studentClass').value;
+    const roll = document.getElementById('studentrollnumber').value.trim();
+    
+    if(!name || !pName || !cls || !roll) return alert("Fill all details!");
+
+    // ✅ DEVICE-INDEPENDENT BLOCK
+    const snap = await db.collection("mathResults")
+                         .where("roll", "==", roll)
+                         .where("class", "==", cls)
+                         .get();
+    if(!snap.empty){
+        alert("⚠ Already Attempted! You cannot start the quiz again.");
+        return; // stop quiz start
+    }
+
+    // …rest of startQuiz() continues here
+}
+
+    
+    
 
     // 2. SECRET DOOR LOGIC
     let clicks = 0;
@@ -298,11 +343,22 @@
     setInterval(updateStatus, 5000); updateStatus();
 
     async function startQuiz() {
-        const name = document.getElementById('sName').value.trim();
-        const pName = document.getElementById('pName').value.trim();
-        const cls = document.getElementById('studentClass').value;
-        const roll = document.getElementById('studentrollnumber').value.trim();
-        if(!name || !pName || !cls || !roll) return alert("Fill all details!");
+    const name = document.getElementById('sName').value.trim();
+    const pName = document.getElementById('pName').value.trim();
+    const cls = document.getElementById('studentClass').value;
+    const roll = document.getElementById('studentrollnumber').value.trim();
+    
+    if(!name || !pName || !cls || !roll) return alert("Fill all details!");
+    
+    // ✅ DEVICE-INDEPENDENT BLOCK
+    const snap = await db.collection("mathResults")
+                         .where("roll", "==", roll)
+                         .where("class", "==", cls)
+                         .get();
+    if(!snap.empty){
+        alert("⚠ Already Attempted! You cannot start the quiz again.");
+        return; // stop quiz start
+    }
 
         document.getElementById('questionsContainer').innerHTML = questions.map((item, i) => `
             <div class="card question-box">
