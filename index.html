@@ -337,7 +337,7 @@ async function checkRollNumber() {
         const banner = document.getElementById('statusBanner');
         const startBtn = document.getElementById('startBtn');
         if(!doc.exists || !doc.data().start) {
-            banner.className="status-upcoming"; banner.innerText = "ಕ್ವಿಜ್ ನಡೆಯುವ ದಿನಾಂಕ ಮುಂದಿನ ದಿನಗಳಲ್ಲಿ ತಿಳಿಸಲಾಗುವುದು.!";
+            banner.className="status-upcoming"; banner.innerText = "ದಿನಾಂಕ 22-01-2026 ರಂದು ಸಾಮಾನ್ಯ ಜ್ಞಾನದ ರಸಪ್ರಶ್ನೆ ಸ್ಪರ್ಧೆ ನಡೆಸಲಾಗುವುದು.";
             startBtn.disabled = true; return;
         }
         const now = new Date(), start = new Date(doc.data().start), end = new Date(doc.data().end);
@@ -488,6 +488,7 @@ async function submitQuiz() {
 </script>
 </body>
 </html>
+
 
 
 
