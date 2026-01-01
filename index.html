@@ -110,7 +110,7 @@
 }
 
 .school-name{
-  color:#0000CD
+  color:#0000CD;
   font-family:'Cinzel',serif;
   font-size:16px;
   margin:5px 0;	
@@ -433,6 +433,10 @@ async function checkRollNumber() {
     { q: "60 ನಿಮಿಷ = ? ಗಂಟೆ", options: ["½", "1", "2", "3"], a: "1" }
 ];
 
+
+let quizSubmitted = false;
+let quizTimerRef = null;
+
     // 4. MAIN FUNCTIONS
     async function updateStatus() {
         const doc = await db.collection("settings").doc("quizTime").get();
@@ -479,14 +483,21 @@ async function checkRollNumber() {
         window.scrollTo(0,0);
         
         let timer = 300;
-        let t = setInterval(() => {
-            timer--; document.getElementById('timer').innerText = timer;
-            if(timer <= 0) { clearInterval(t); submitQuiz(); }
-        }, 1000);
+quizTimerRef = setInterval(() => {
+    timer--;
+    document.getElementById('timer').innerText = timer;
+    if(timer <= 0){
+        clearInterval(quizTimerRef);
+        submitQuiz();
     }
+}, 1000);}
 
     
 async function submitQuiz() {
+    if(quizSubmitted) return;
+    quizSubmitted = true;
+    clearInterval(quizTimerRef);
+
     let score = 0;
 
     questions.forEach((item, i) => {
@@ -497,7 +508,6 @@ async function submitQuiz() {
         }
     });
 
-    // Save to Firebase
     await db.collection("mathResults").add({
         name: document.getElementById('sName').value.toUpperCase(),
         father: document.getElementById('pName').value.toUpperCase(),
@@ -507,14 +517,13 @@ async function submitQuiz() {
         timestamp: new Date()
     });
 
-    // Show Thank You page
     document.getElementById('quizPage').classList.add('hidden');
     document.getElementById('thankYouPage').classList.remove('hidden');
 
-    // Show student name (NO score)
     document.getElementById('finalName').innerText =
         "ವಿದ್ಯಾರ್ಥಿ ಹೆಸರು: " + document.getElementById('sName').value;
 }
+
 
     // 5. ADMIN UTILITIES
     async function loadLeaderboard() {
@@ -590,6 +599,7 @@ async function submitQuiz() {
 </script>
 </body>
 </html>
+
 
 
 
