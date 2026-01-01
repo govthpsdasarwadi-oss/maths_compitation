@@ -302,6 +302,11 @@
             <button onclick="saveSchedule()" class="btn-main">Update Schedule</button>
             <button onclick="resetSchedule()" style="background:#666; color:white;">Reset Schedule</button>
         </div>
+        
+        <div class="card">
+            <h3>🔍 Search & Filter</h3>
+            <input type="text" id="adminSearch" placeholder="Search by Name or Roll No..." onkeyup="filterTable()"> </div>
+        
         <div class="card">
             <div style="display: flex; gap: 8px; flex-wrap: wrap;">
                 <button onclick="downloadWholeResultsPDF()" style="background:#e74c3c; color:white; flex:1; font-size:12px;">PDF</button>
@@ -540,16 +545,66 @@ async function submitQuiz() {
 }
 
 
+    
+    
+    UPPPPPPPPPPPPP
+    
+    
     // 5. ADMIN UTILITIES
     async function loadLeaderboard() {
         const snap = await db.collection("mathResults").orderBy("score", "desc").get();
         let rank = 1;
         document.getElementById('leaderboardBody').innerHTML = snap.docs.map(doc => {
             const d = doc.data();
-            return `<tr><td>#${rank++}</td><td>${d.name}</td><td>${d.father}</td><td>${d.class}th</td><td>${d.roll}</td><td>${d.score}/50</td>
-            <td><button onclick="deleteRecord('${doc.id}')" style="background:red;color:white;padding:5px;width:auto;font-size:10px;">Del</button></td></tr>`;
+            return `<tr>
+                <td>#${rank++}</td>
+                <td>${d.name}</td>
+                <td>${d.father}</td>
+                <td>${d.class}</td>
+                <td>${d.roll}</td>
+                <td>${d.score}/20</td>
+                <td>
+                    <button onclick="generateCert('${d.name}', '${d.score}', '${d.class}')" style="background:orange; padding:4px; font-size:10px;">Cert</button>
+                    <button onclick="deleteRecord('${doc.id}')" style="background:red; padding:4px; font-size:10px;">Del</button>
+                </td>
+            </tr>`;
         }).join('');
     }
+
+    function filterTable() {
+        let val = document.getElementById('adminSearch').value.toUpperCase();
+        document.querySelectorAll("#leaderboardBody tr").forEach(tr => {
+            tr.style.display = tr.innerText.toUpperCase().includes(val) ? "" : "none";
+        });
+    }
+
+    function exportCSV() {
+        let csv = "Rank,Name,Father,Class,Roll,Score\n";
+        document.querySelectorAll("#leaderboardBody tr").forEach(tr => {
+            const c = tr.querySelectorAll("td");
+            csv += `"${c[0].innerText}","${c[1].innerText}","${c[2].innerText}","${c[3].innerText}","${c[4].innerText}","${c[5].innerText}"\n`;
+        });
+        const blob = new Blob([csv], { type: 'text/csv' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'Quiz_Results.csv';
+        a.click();
+    }
+
+    function generateCert(name, score, cls) {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF({ orientation: "landscape" });
+        doc.rect(10, 10, 277, 190);
+        doc.setFontSize(30); doc.text("ಸರಕಾರಿ ಹಿರಿಯ ಪ್ರಾಥಮಿಕ ಶಾಲೆ, ದಾಸರವಾಡಿ ತಾ; ಬಸವಕಲ್ಯಾಣ ಜಿ : ಬೀದರ", 148, 40, {align:"center"});
+        doc.setFontSize(20); doc.text("CERTIFICATE OF GK QUIZ MERIT", 148, 60, {align:"center"});
+        doc.setFontSize(16); doc.text(`This is to certify that ${name} of Class ${cls}`, 148, 100, {align:"center"});
+        doc.text(`scored ${score} out of 50 in General Knowledge Quiz 2026`, 148, 120, {align:"center"});
+        doc.save(`${name}_Cert.pdf`);
+    }
+    
+ 
+    
+    
 
     async function deleteRecord(id) {
         if(confirm("Delete this student record?")) {
@@ -585,25 +640,7 @@ async function submitQuiz() {
         }
     }
 
-    function exportCSV() {
-    let csv = "Rank,Name,Father,Class,Roll,Score\n";
-    document.querySelectorAll("#leaderboardBody tr").forEach(row => {
-        const cols = Array.from(row.querySelectorAll("td"));
-        const rank = cols[0].innerText.replace(/#/g,""); // remove #
-        const name = cols[1].innerText;
-        const father = cols[2].innerText;
-        const cls = cols[3].innerText;
-        const score = cols[4].innerText; // score
-        csv += `${rank},${name},${father},${cls},${score}\n`;
-    });
-    const blob = new Blob([csv], { type: 'text/csv' });
-    const a = document.createElement('a');
-    a.href = window.URL.createObjectURL(blob);
-    a.download = 'Quiz_Results.csv';
-    a.click();
-}
-
-
+    
     async function loadScheduleInputs() {
         const doc = await db.collection("settings").doc("quizTime").get();
         if(doc.exists) {
@@ -623,5 +660,8 @@ async function submitQuiz() {
 </script>
 </body>
 </html>
+
+
+
 
 
