@@ -513,36 +513,76 @@ quizTimerRef = setInterval(() => {
 }, 1000);}
 
     
-async function submitQuiz() {
-    if(quizSubmitted) return;
-    quizSubmitted = true;
-    clearInterval(quizTimerRef);
+async function startQuiz() {
 
-    let score = 0;
+    // 🔒 CHECK SCHEDULE AGAIN (FINAL SECURITY)
+    const schedDoc = await db.collection("settings").doc("quizTime").get();
 
-    questions.forEach((item, i) => {
-        if (
-            document.querySelector(`input[name="q${i}"]:checked`)?.value === item.a
-        ) {
-            score++;
+    if (!schedDoc.exists) {
+        alert("⛔ Quiz is not live yet.");
+        return;
+    }
+
+    const now = new Date();
+    const start = new Date(schedDoc.data().start);
+    const end = new Date(schedDoc.data().end);
+
+    if (now < start || now > end) {
+        alert("⏰ Quiz is CLOSED or NOT YET STARTED.");
+        return;
+    }
+
+    // 🔽 EXISTING VALIDATIONS
+    const name = document.getElementById('sName').value.trim();
+    const pName = document.getElementById('pName').value.trim();
+    const cls = document.getElementById('studentClass').value;
+    const roll = document.getElementById('studentrollnumber').value.trim();
+
+    if (!name || !pName || !cls || !roll) {
+        alert("Fill all details!");
+        return;
+    }
+
+    // 🚫 ONE ATTEMPT CHECK
+    const snap = await db.collection("mathResults")
+        .where("roll", "==", roll)
+        .where("class", "==", cls)
+        .get();
+
+    if (!snap.empty) {
+        alert("⚠ Already Attempted!");
+        return;
+    }
+
+    // ✅ START QUIZ
+    document.getElementById('questionsContainer').innerHTML = questions.map((item, i) => `
+        <div class="card question-box">
+            <b class="question-text">${i + 1}. ${item.q}</b>
+            <div class="options-grid">
+                ${item.options.map(opt => `
+                    <label class="option-card">
+                        <input type="radio" name="q${i}" value="${opt}"> ${opt}
+                    </label>
+                `).join('')}
+            </div>
+        </div>
+    `).join('');
+
+    document.getElementById('studentPage').classList.add('hidden');
+    document.getElementById('quizPage').classList.remove('hidden');
+    window.scrollTo(0, 0);
+
+    let timer = 1500;
+    quizTimerRef = setInterval(() => {
+        timer--;
+        document.getElementById('timer').innerText = timer;
+        if (timer <= 0) {
+            clearInterval(quizTimerRef);
+            submitQuiz();
         }
-    });
-
-    await db.collection("mathResults").add({
-        name: document.getElementById('sName').value.toUpperCase(),
-        father: document.getElementById('pName').value.toUpperCase(),
-        class: document.getElementById('studentClass').value,
-        roll: document.getElementById('studentrollnumber').value,
-        score: score,
-        timestamp: new Date()
-    });
-
-    document.getElementById('quizPage').classList.add('hidden');
-    document.getElementById('thankYouPage').classList.remove('hidden');
-
-    document.getElementById('finalName').innerText =
-        "ವಿದ್ಯಾರ್ಥಿ ಹೆಸರು: " + document.getElementById('sName').value;
+    }, 1000);
 }
+
     
     // 5. ADMIN UTILITIES
     async function loadLeaderboard() {
@@ -654,7 +694,4 @@ async function submitQuiz() {
 </script>
 </body>
 </html>
-
-
-
 
