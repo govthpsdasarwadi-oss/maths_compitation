@@ -557,7 +557,7 @@ async function startQuiz() {
                 <td>${d.father}</td>
                 <td>${d.class}</td>
                 <td>${d.roll}</td>
-                <td>${d.score}/20</td>
+                <td>${d.score}/50</td>
                 <td>
                     <button onclick="generateCert('${d.name}', '${d.score}', '${d.class}')" style="background:orange; padding:4px; font-size:10px;">Cert</button>
                     <button onclick="deleteRecord('${doc.id}')" style="background:red; padding:4px; font-size:10px;">Del</button>
@@ -652,6 +652,44 @@ async function startQuiz() {
         doc.autoTable({ head: [['Rank', 'Name','Father', 'Class', 'Roll', 'Score']], body: rows, startY: 20 });
         doc.save("Quiz Results.pdf");
     }
+    async function submitQuiz() {
+
+    if (quizSubmitted) return; // prevent double submit
+    quizSubmitted = true;
+
+    clearInterval(quizTimerRef);
+
+    const name = document.getElementById('sName').value.trim();
+    const father = document.getElementById('pName').value.trim();
+    const cls = document.getElementById('studentClass').value;
+    const roll = document.getElementById('studentrollnumber').value.trim();
+
+    let score = 0;
+
+    questions.forEach((q, i) => {
+        const selected = document.querySelector(`input[name="q${i}"]:checked`);
+        if (selected && selected.value === q.a) {
+            score++;
+        }
+    });
+
+    // 🔒 Save result to Firebase
+    await db.collection("mathResults").add({
+        name: name,
+        father: father,
+        class: cls,
+        roll: roll,
+        score: score,
+        submittedAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+
+    // ✅ SHOW THANK YOU PAGE
+    document.getElementById('quizPage').classList.add('hidden');
+    document.getElementById('thankYouPage').classList.remove('hidden');
+    document.getElementById('finalName').innerText =
+        `Student: ${name}`;
+}
+
 </script>
 </body>
 </html>
