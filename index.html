@@ -10,7 +10,8 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
-    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
     <style>
         :root { --primary: #1a2a6c; --gold: #c5a059; --accent: #b21f1f; }
         
@@ -251,18 +252,23 @@
         </div>
         
         <div class="card">
-            <label>ವಿದ್ಯಾರ್ಥಿಯ ಹೆಸರು (Student Name):</label>
-            <input type="text" id="sName" placeholder="ENTER FULL NAME" oninput="this.value = this.value.toUpperCase()">
-            <label>ತಂದೆಯ ಹೆಸರು (Father's Name):</label>
-            <input type="text" id="pName" placeholder="ENTER FATHER'S NAME" oninput="this.value = this.value.toUpperCase()">
-            <label>ತರಗತಿ (Class):</label>
-            <select id="studentClass">
+        <label>ತರಗತಿ (Class):</label>
+            <select id="studentClass" onchange="fetchStudentFromMaster()">
                 <option value="">-- Select Class --</option>
                 <option value="5">5ನೇ ತರಗತಿ</option><option value="6">6ನೇ ತರಗತಿ</option><option value="7">7ನೇ ತರಗತಿ</option><option value="8">8ನೇ ತರಗತಿ</option>
             </select>
             <label>ರೋಲ್ ನಂಬರ್ (Roll Number):</label>
-            <input type="number" id="studentrollnumber" placeholder="Enter Roll No." 
-       oninput="this.value = this.value.replace(/[^0-9]/g, ''); checkRollNumber()">
+            <input type="number" id="studentrollnumber"
+placeholder="Enter Roll No."
+oninput="this.value=this.value.replace(/[^0-9]/g,''); fetchStudentFromMaster()">
+
+            
+            <label>ವಿದ್ಯಾರ್ಥಿಯ ಹೆಸರು (Student Name):</label>
+            <input type="text" id="sName" placeholder="Student Name" readonly>
+            <label>ತಂದೆಯ ಹೆಸರು (Father's Name):</label>
+            <input type="text" id="pName" placeholder="Father Name" readonly>
+            
+            
 
             <button class="btn-main" id="startBtn" onclick="startQuiz()" disabled>ಕ್ವಿಜ್ ಪ್ರಾರಂಭಿಸಿ (Start Quiz) ➔</button>
         </div>
@@ -303,6 +309,13 @@
             <button onclick="resetSchedule()" style="background:#666; color:white;">Reset Schedule</button>
         </div>
         
+        <div class="card">
+  <h3>📤 Bulk Upload Students (Excel)</h3>
+  <input type="file" id="excelFile" accept=".xlsx,.xls">
+  <button class="btn-main" onclick="uploadStudentsExcel()">Upload Students</button>
+  <p id="uploadStatus" style="font-weight:bold;"></p>
+</div>
+
         <div class="card">
             <h3>🔍 Search & Filter</h3>
             <input type="text" id="adminSearch" placeholder="Search by Name or Roll No..." onkeyup="filterTable()"> </div>
@@ -356,24 +369,7 @@ function checkPassword(){
     };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
-    // ✅ Prevent multiple attempts by checking roll number
-async function checkRollNumber() {
-    const roll = document.getElementById('studentrollnumber').value.trim();
-    const cls = document.getElementById('studentClass').value;
-    const startBtn = document.getElementById('startBtn');
-
-    if(!roll || !cls) { 
-        startBtn.disabled = true; 
-        return; 
-    }
-
-    const snap = await db.collection("mathResults")
-                         .where("roll", "==", roll)
-                         .where("class", "==", cls)
-                         .get();
-
-    startBtn.disabled = !snap.empty ? true : false; // disable if already attempted
-}
+    
 
        
 
@@ -499,10 +495,16 @@ async function startQuiz() {
     const cls = document.getElementById('studentClass').value;
     const roll = document.getElementById('studentrollnumber').value.trim();
 
-    if (!name || !pName || !cls || !roll) {
-        alert("Fill all details!");
-        return;
-    }
+    if (!cls || !roll) {
+    alert("Select class and roll number");
+    return;
+}
+
+if (!name) {
+    alert("Student not verified");
+    return;
+}
+
 
     // 🚫 ONE ATTEMPT CHECK
     const snap = await db.collection("mathResults")
@@ -689,6 +691,115 @@ async function startQuiz() {
     document.getElementById('finalName').innerText =
         `Student: ${name}`;
 }
+async function uploadStudentsExcel() {
+
+    const fileInput = document.getElementById("excelFile");
+    const status = document.getElementById("uploadStatus");
+
+    if (!fileInput.files.length) {
+        alert("Please select Excel file");
+        return;
+    }
+
+    status.innerText = "⏳ Reading Excel file...";
+
+    const reader = new FileReader();
+    reader.onload = async function (e) {
+
+        const data = new Uint8Array(e.target.result);
+        const workbook = XLSX.read(data, { type: "array" });
+        const sheet = workbook.Sheets[workbook.SheetNames[0]];
+
+        const rows = XLSX.utils.sheet_to_json(sheet);
+
+        if (!rows.length) {
+            status.innerText = "❌ Excel file is empty";
+            return;
+        }
+
+        let uploaded = 0;
+        let skipped = 0;
+
+        for (let row of rows) {
+
+            const cls = String(row.class || "").trim();
+            const roll = String(row.roll || "").trim();
+            const name = String(row.name || "").trim().toUpperCase();
+            const father = String(row.father || "").trim().toUpperCase();
+
+            if (!cls || !roll || !name || !father) {
+                skipped++;
+                continue;
+            }
+
+            // 🚫 Prevent duplicate Class + Roll
+            const check = await db.collection("students")
+                .where("class", "==", cls)
+                .where("roll", "==", roll)
+                .limit(1)
+                .get();
+
+            if (!check.empty) {
+                skipped++;
+                continue;
+            }
+
+            await db.collection("students").add({
+                class: cls,
+                roll: roll,
+                name: name,
+                father: father
+            });
+
+            uploaded++;
+        }
+
+        status.innerText =
+            `✅ Upload Complete | Added: ${uploaded} | Skipped: ${skipped}`;
+    };
+
+    reader.readAsArrayBuffer(fileInput.files[0]);
+}
+
+async function fetchStudentFromMaster() {
+
+    const cls = document.getElementById("studentClass").value;
+    const roll = document.getElementById("studentrollnumber").value.trim();
+
+    const nameInput = document.getElementById("sName");
+    const fatherInput = document.getElementById("pName");
+    const startBtn = document.getElementById("startBtn");
+
+    nameInput.value = "";
+    fatherInput.value = "";
+    startBtn.disabled = true;
+
+    if (!cls || !roll) return;
+
+    const snap = await db.collection("students")
+        .where("class", "==", cls)
+        .where("roll", "==", roll)
+        .limit(1)
+        .get();
+
+    if (snap.empty) {
+    nameInput.value = "";
+    fatherInput.value = "";
+    startBtn.disabled = true;
+    return;
+}
+
+
+    const data = snap.docs[0].data();
+
+    nameInput.value = data.name;
+    fatherInput.value = data.father;
+
+    startBtn.disabled = false;
+}
+
+
+
 
 </script>
 </body>
