@@ -519,7 +519,7 @@ async function startQuiz() {
     const schedDoc = await db.collection("settings").doc("quizTime").get();
 
     if (!schedDoc.exists) {
-        alert("⛔ Quiz is not live yet.");
+        alert("⛔ ಕ್ವಿಜ್ ಇನ್ನೂ ಪ್ರಾರಂಭವಾಗಿಲ್ಲ....!");
         return;
     }
 
@@ -694,4 +694,3 @@ async function startQuiz() {
 </script>
 </body>
 </html>
-
