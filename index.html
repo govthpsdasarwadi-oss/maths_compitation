@@ -253,14 +253,19 @@
         
         <div class="card">
         <label>ತರಗತಿ (Class):</label>
-            <select id="studentClass" onchange="fetchStudentFromMaster()">
+            <select id="studentClass" onchange="handleClassChange()">
                 <option value="">-- Select Class --</option>
                 <option value="5">5ನೇ ತರಗತಿ</option><option value="6">6ನೇ ತರಗತಿ</option><option value="7">7ನೇ ತರಗತಿ</option><option value="8">8ನೇ ತರಗತಿ</option>
             </select>
-            <label>ರೋಲ್ ನಂಬರ್ (Roll Number):</label>
-            <input type="number" id="studentrollnumber"
-placeholder="Enter Roll No."
-oninput="this.value=this.value.replace(/[^0-9]/g,''); fetchStudentFromMaster()">
+            <label>ವಿದ್ಯಾರ್ಥಿಯ STS No. (Student STS number):</label>
+            <input type="text"
+       id="studentrollnumber"
+       placeholder="Enter 9-Digit STS No."
+       maxlength="9"
+       inputmode="numeric"
+       disabled
+       oninput="this.value=this.value.replace(/[^0-9]/g,''); fetchStudentFromMaster()">
+
 
             
             <label>ವಿದ್ಯಾರ್ಥಿಯ ಹೆಸರು (Student Name):</label>
@@ -464,7 +469,8 @@ let quizTimerRef = null;
         }
         const now = new Date(), start = new Date(doc.data().start), end = new Date(doc.data().end);
         if(now < start) { banner.className="status-upcoming"; banner.innerText = "Upcoming..."; startBtn.disabled = true; }
-        else if(now <= end) { banner.className = "status-live"; banner.innerText = "● LIVE: Quiz is Open!"; startBtn.disabled = false; }
+        else if(now <= end) { banner.className = "status-live"; banner.innerText = "● LIVE: Quiz is Open!"; startBtn.disabled = !document.getElementById("sName").value;
+ }
         else { banner.className = "status-closed"; banner.innerText = "Closed!"; startBtn.disabled = true; }
     }
     setInterval(updateStatus, 5000); updateStatus();
@@ -495,7 +501,7 @@ async function startQuiz() {
     const cls = document.getElementById('studentClass').value;
     const roll = document.getElementById('studentrollnumber').value.trim();
 
-    if (!cls || !roll) {
+   if (!cls || roll.length !== 9) {
     alert("Select class and roll number");
     return;
 }
@@ -504,18 +510,6 @@ if (!name) {
     alert("Student not verified");
     return;
 }
-
-
-    // 🚫 ONE ATTEMPT CHECK
-    const snap = await db.collection("mathResults")
-        .where("roll", "==", roll)
-        .where("class", "==", cls)
-        .get();
-
-    if (!snap.empty) {
-        alert("⚠ Already Attempted!");
-        return;
-    }
 
     // ✅ START QUIZ
     document.getElementById('questionsContainer').innerHTML = questions.map((item, i) => `
@@ -676,7 +670,8 @@ if (!name) {
     });
 
     // 🔒 Save result to Firebase
-    await db.collection("mathResults").add({
+    const resultId = `${cls}_${roll}`;
+await db.collection("mathResults").doc(resultId).set({
         name: name,
         father: father,
         class: cls,
@@ -720,39 +715,38 @@ async function uploadStudentsExcel() {
         let uploaded = 0;
         let skipped = 0;
 
-        for (let row of rows) {
+       for (let row of rows) {
 
-            const cls = String(row.class || "").trim();
-            const roll = String(row.roll || "").trim();
-            const name = String(row.name || "").trim().toUpperCase();
-            const father = String(row.father || "").trim().toUpperCase();
+    const cls = String(row.class || row.Class || "").trim();
+const roll = String(row.roll || row.Roll || "").trim();
+const name = String(row.name || row.Name || "").trim().toUpperCase();
+const father = String(row.father || row.Father || "").trim().toUpperCase();
 
-            if (!cls || !roll || !name || !father) {
-                skipped++;
-                continue;
-            }
 
-            // 🚫 Prevent duplicate Class + Roll
-            const check = await db.collection("students")
-                .where("class", "==", cls)
-                .where("roll", "==", roll)
-                .limit(1)
-                .get();
+    if (!cls || roll.length !== 9 || !name || !father) {
+        skipped++;
+        continue;
+    }
 
-            if (!check.empty) {
-                skipped++;
-                continue;
-            }
+    const docId = `${cls}_${roll}`;
+    const docRef = db.collection("students").doc(docId);
+    const docSnap = await docRef.get();
 
-            await db.collection("students").add({
-                class: cls,
-                roll: roll,
-                name: name,
-                father: father
-            });
+    if (docSnap.exists) {
+        skipped++;
+        continue;
+    }
 
-            uploaded++;
-        }
+    await docRef.set({
+        class: cls,
+        roll: roll,
+        name: name,
+        father: father
+    });
+
+    uploaded++;
+}
+
 
         status.innerText =
             `✅ Upload Complete | Added: ${uploaded} | Skipped: ${skipped}`;
@@ -770,11 +764,12 @@ async function fetchStudentFromMaster() {
     const fatherInput = document.getElementById("pName");
     const startBtn = document.getElementById("startBtn");
 
+    if (!cls || roll.length !== 9) {
     nameInput.value = "";
     fatherInput.value = "";
     startBtn.disabled = true;
-
-    if (!cls || !roll) return;
+    return;
+}
 
     const snap = await db.collection("students")
         .where("class", "==", cls)
@@ -795,9 +790,26 @@ async function fetchStudentFromMaster() {
     nameInput.value = data.name;
     fatherInput.value = data.father;
 
-    startBtn.disabled = false;
-}
+    await updateStatus(); // schedule decides final enable
 
+}
+function handleClassChange() {
+    const cls = document.getElementById("studentClass").value;
+    const rollInput = document.getElementById("studentrollnumber");
+
+    // reset fields
+    rollInput.value = "";
+    document.getElementById("sName").value = "";
+    document.getElementById("pName").value = "";
+    document.getElementById("startBtn").disabled = true;
+
+    if (cls) {
+        rollInput.disabled = false;
+        rollInput.focus();
+    } else {
+        rollInput.disabled = true;
+    }
+}
 
 
 
