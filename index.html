@@ -644,7 +644,7 @@ if (!name) {
         const { jsPDF } = window.jspdf; const doc = new jsPDF();
         const snap = await db.collection("mathResults").orderBy("score", "desc").get();
         const rows = snap.docs.map((d, i) => [i+1, d.data().name, d.data().father, d.data().class, d.data().roll, d.data().score + "/50"]);
-        doc.text("Govt. Higher Primary School Dasarawadi, Maths Quiz Results 2025", 14, 15);
+        doc.text("Govt. Higher Primary School Dasarawadi, GK Quiz Results 2026", 14, 15);
         doc.autoTable({ head: [['Rank', 'Name','Father', 'Class', 'STS No.', 'Score']], body: rows, startY: 20 });
         doc.save("Quiz Results.pdf");
     }
@@ -823,5 +823,6 @@ function handleClassChange() {
 </script>
 </body>
 </html>
+
 
 
