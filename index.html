@@ -259,13 +259,13 @@
             </select>
             <label>ವಿದ್ಯಾರ್ಥಿಯ STS No. (Student STS number):</label>
             <input type="text"
-       id="studentrollnumber"
-       placeholder="Enter 9-Digit STS No."
-       maxlength="9"
-       inputmode="numeric"
-       disabled
-       oninput="this.value=this.value.replace(/[^0-9]/g,''); fetchStudentFromMaster()">
-
+ id="studentrollnumber"
+ placeholder="Enter 9-Digit STS No."
+ maxlength="9"
+ inputmode="numeric"
+ pattern="[0-9]{9}"
+ disabled
+ oninput="this.value=this.value.replace(/\D/g,''); fetchStudentFromMaster()">
 
             
             <label>ವಿದ್ಯಾರ್ಥಿಯ ಹೆಸರು (Student Name):</label>
@@ -351,6 +351,8 @@
     </div>
 
 <script>
+let studentVerified = false;
+
 // 🔐 QUIZ PASSWORD (CHANGE HERE)
 const QUIZ_PASSWORD = "8151004545";
 
@@ -469,7 +471,8 @@ let quizTimerRef = null;
         }
         const now = new Date(), start = new Date(doc.data().start), end = new Date(doc.data().end);
         if(now < start) { banner.className="status-upcoming"; banner.innerText = "Upcoming..."; startBtn.disabled = true; }
-        else if(now <= end) { banner.className = "status-live"; banner.innerText = "● LIVE: Quiz is Open!"; startBtn.disabled = !document.getElementById("sName").value;
+        else if(now <= end) { banner.className = "status-live"; banner.innerText = "● LIVE: Quiz is Open!"; startBtn.disabled = !studentVerified;
+
  }
         else { banner.className = "status-closed"; banner.innerText = "Closed!"; startBtn.disabled = true; }
     }
@@ -478,11 +481,16 @@ let quizTimerRef = null;
     
 async function startQuiz() {
 
-    // 🔒 CHECK SCHEDULE AGAIN (FINAL SECURITY)
+    if (!studentVerified) {
+        alert("⛔ Invalid STS Number. Quiz access denied.");
+        return;
+    }
+
+    // 🔒 FINAL SCHEDULE CHECK
     const schedDoc = await db.collection("settings").doc("quizTime").get();
 
     if (!schedDoc.exists) {
-        alert("⛔ ಕ್ವಿಜ್ ಇನ್ನೂ ಪ್ರಾರಂಭವಾಗಿಲ್ಲ....!");
+        alert("⛔ ಕ್ವಿಜ್ ಇನ್ನೂ ಪ್ರಾರಂಭವಾಗಿಲ್ಲ!");
         return;
     }
 
@@ -495,24 +503,18 @@ async function startQuiz() {
         return;
     }
 
-    // 🔽 EXISTING VALIDATIONS
-    const name = document.getElementById('sName').value.trim();
-    const pName = document.getElementById('pName').value.trim();
     const cls = document.getElementById('studentClass').value;
     const roll = document.getElementById('studentrollnumber').value.trim();
+    const name = document.getElementById('sName').value.trim();
 
-   if (!cls || roll.length !== 9) {
-    alert("Select class and roll number");
-    return;
-}
+    if (!cls || roll.length !== 9 || !name) {
+        alert("Student verification incomplete");
+        return;
+    }
 
-if (!name) {
-    alert("Student not verified");
-    return;
-}
-
-    // ✅ START QUIZ
-    document.getElementById('questionsContainer').innerHTML = questions.map((item, i) => `
+    // ✅ LOAD QUESTIONS
+    document.getElementById('questionsContainer').innerHTML =
+        questions.map((item, i) => `
         <div class="card question-box">
             <b class="question-text">${i + 1}. ${item.q}</b>
             <div class="options-grid">
@@ -527,7 +529,6 @@ if (!name) {
 
     document.getElementById('studentPage').classList.add('hidden');
     document.getElementById('quizPage').classList.remove('hidden');
-    window.scrollTo(0, 0);
 
     let timer = 1500;
     quizTimerRef = setInterval(() => {
@@ -539,6 +540,7 @@ if (!name) {
         }
     }, 1000);
 }
+
 
     
     // 5. ADMIN UTILITIES
@@ -755,54 +757,65 @@ async function uploadStudentsExcel() {
 }
 
 async function fetchStudentFromMaster() {
+
     const cls = document.getElementById("studentClass").value;
     const roll = document.getElementById("studentrollnumber").value.trim();
     const nameInput = document.getElementById("sName");
     const fatherInput = document.getElementById("pName");
     const startBtn = document.getElementById("startBtn");
 
-    // Reset fields if roll number is not 9 digits
-    if (roll.length !== 9) {
+    // RESET
+    studentVerified = false;
+    startBtn.disabled = true;
+
+    if (!cls || roll.length !== 9) {
         nameInput.value = "";
         fatherInput.value = "";
-        startBtn.disabled = true;
         return;
     }
 
     nameInput.value = "Verifying...";
 
     try {
-        // 1. Check if student exists in Master List
         const docId = `${cls}_${roll}`;
+
+        // 🔍 CHECK MASTER STUDENT LIST
         const studentDoc = await db.collection("students").doc(docId).get();
 
-        if (studentDoc.exists) {
-            const data = studentDoc.data();
-            
-            // 2. Check if student has ALREADY submitted the quiz
-            const resultDoc = await db.collection("mathResults").doc(docId).get();
-            
-            if (resultDoc.exists) {
-                nameInput.value = "ALREADY SUBMITTED";
-                fatherInput.value = "Access Denied";
-                startBtn.disabled = true;
-                alert("You have already completed this quiz. Only one attempt is allowed.");
-            } else {
-                // Student found and hasn't played yet
-                nameInput.value = data.name;
-                fatherInput.value = data.father;
-                startBtn.disabled = false;
-            }
-        } else {
-            nameInput.value = "NOT FOUND";
-            fatherInput.value = "Check STS No. or Class";
-            startBtn.disabled = true;
+        if (!studentDoc.exists) {
+            nameInput.value = "❌ NOT FOUND";
+            fatherInput.value = "Invalid STS Number";
+            studentVerified = false;
+            return;
         }
-    } catch (error) {
-        console.error("Error fetching student:", error);
-        nameInput.value = "Error loading data";
+
+        // 🔒 CHECK IF ALREADY ATTEMPTED
+        const resultDoc = await db.collection("mathResults").doc(docId).get();
+
+        if (resultDoc.exists) {
+            nameInput.value = "❌ ALREADY SUBMITTED";
+            fatherInput.value = "Only one attempt allowed";
+            studentVerified = false;
+            alert("⚠️ You have already submitted this quiz.");
+            return;
+        }
+
+        // ✅ VALID STUDENT
+        const data = studentDoc.data();
+        nameInput.value = data.name;
+        fatherInput.value = data.father;
+
+        studentVerified = true;
+        startBtn.disabled = false;
+
+    } catch (err) {
+        console.error(err);
+        nameInput.value = "ERROR";
+        fatherInput.value = "Try again";
+        studentVerified = false;
     }
 }
+
 
 function handleClassChange() {
     const rollInput = document.getElementById("studentrollnumber");
@@ -818,11 +831,8 @@ function handleClassChange() {
     }
 }
 
-
-
 </script>
 </body>
 </html>
-
 
 
