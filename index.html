@@ -717,11 +717,10 @@ async function uploadStudentsExcel() {
 
        for (let row of rows) {
 
-    const cls = String(row.class || row.Class || "").trim();
-const roll = String(row.roll || row.Roll || "").trim();
-const name = String(row.name || row.Name || "").trim().toUpperCase();
-const father = String(row.father || row.Father || "").trim().toUpperCase();
-
+    const cls = String(row.class || "").trim();
+    const roll = String(row.roll || "").trim();
+    const name = String(row.name || "").trim().toUpperCase();
+    const father = String(row.father || "").trim().toUpperCase();
 
     if (!cls || roll.length !== 9 || !name || !father) {
         skipped++;
@@ -756,56 +755,64 @@ const father = String(row.father || row.Father || "").trim().toUpperCase();
 }
 
 async function fetchStudentFromMaster() {
-
     const cls = document.getElementById("studentClass").value;
     const roll = document.getElementById("studentrollnumber").value.trim();
-
     const nameInput = document.getElementById("sName");
     const fatherInput = document.getElementById("pName");
     const startBtn = document.getElementById("startBtn");
 
-    if (!cls || roll.length !== 9) {
-    nameInput.value = "";
-    fatherInput.value = "";
-    startBtn.disabled = true;
-    return;
+    // Reset fields if roll number is not 9 digits
+    if (roll.length !== 9) {
+        nameInput.value = "";
+        fatherInput.value = "";
+        startBtn.disabled = true;
+        return;
+    }
+
+    nameInput.value = "Verifying...";
+
+    try {
+        // 1. Check if student exists in Master List
+        const docId = `${cls}_${roll}`;
+        const studentDoc = await db.collection("students").doc(docId).get();
+
+        if (studentDoc.exists) {
+            const data = studentDoc.data();
+            
+            // 2. Check if student has ALREADY submitted the quiz
+            const resultDoc = await db.collection("mathResults").doc(docId).get();
+            
+            if (resultDoc.exists) {
+                nameInput.value = "ALREADY SUBMITTED";
+                fatherInput.value = "Access Denied";
+                startBtn.disabled = true;
+                alert("You have already completed this quiz. Only one attempt is allowed.");
+            } else {
+                // Student found and hasn't played yet
+                nameInput.value = data.name;
+                fatherInput.value = data.father;
+                startBtn.disabled = false;
+            }
+        } else {
+            nameInput.value = "NOT FOUND";
+            fatherInput.value = "Check STS No. or Class";
+            startBtn.disabled = true;
+        }
+    } catch (error) {
+        console.error("Error fetching student:", error);
+        nameInput.value = "Error loading data";
+    }
 }
 
-    const snap = await db.collection("students")
-        .where("class", "==", cls)
-        .where("roll", "==", roll)
-        .limit(1)
-        .get();
-
-    if (snap.empty) {
-    nameInput.value = "";
-    fatherInput.value = "";
-    startBtn.disabled = true;
-    return;
-}
-
-
-    const data = snap.docs[0].data();
-
-    nameInput.value = data.name;
-    fatherInput.value = data.father;
-
-    await updateStatus(); // schedule decides final enable
-
-}
 function handleClassChange() {
-    const cls = document.getElementById("studentClass").value;
     const rollInput = document.getElementById("studentrollnumber");
-
-    // reset fields
-    rollInput.value = "";
-    document.getElementById("sName").value = "";
-    document.getElementById("pName").value = "";
-    document.getElementById("startBtn").disabled = true;
-
+    const cls = document.getElementById("studentClass").value;
+    
     if (cls) {
         rollInput.disabled = false;
-        rollInput.focus();
+        rollInput.value = ""; // Clear previous roll to force re-verification
+        document.getElementById("sName").value = "";
+        document.getElementById("pName").value = "";
     } else {
         rollInput.disabled = true;
     }
