@@ -645,7 +645,7 @@ if (!name) {
         const snap = await db.collection("mathResults").orderBy("score", "desc").get();
         const rows = snap.docs.map((d, i) => [i+1, d.data().name, d.data().father, d.data().class, d.data().roll, d.data().score + "/50"]);
         doc.text("Govt. Higher Primary School Dasarawadi, Maths Quiz Results 2025", 14, 15);
-        doc.autoTable({ head: [['Rank', 'Name','Father', 'Class', 'Roll', 'Score']], body: rows, startY: 20 });
+        doc.autoTable({ head: [['Rank', 'Name','Father', 'Class', 'STS No.', 'Score']], body: rows, startY: 20 });
         doc.save("Quiz Results.pdf");
     }
     async function submitQuiz() {
@@ -823,3 +823,4 @@ function handleClassChange() {
 </script>
 </body>
 </html>
+
