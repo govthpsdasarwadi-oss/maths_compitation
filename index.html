@@ -316,10 +316,56 @@
         
         <div class="card">
   <h3>📤 Bulk Upload Students (Excel)</h3>
+
   <input type="file" id="excelFile" accept=".xlsx,.xls">
   <button class="btn-main" onclick="uploadStudentsExcel()">Upload Students</button>
+
+  <hr>
+
+  <h4>➕ Add Single Student</h4>
+  <input id="addClass" placeholder="Class (5-8)">
+  <input id="addRoll" placeholder="9 Digit STS No">
+  <input id="addName" placeholder="Student Name">
+  <input id="addFather" placeholder="Father Name">
+
+  <button class="btn-main" onclick="addSingleStudent()">Add Student</button>
+
+  <hr>
+
+  <button style="background:#e74c3c;color:white" onclick="wipeAllStudents()">
+    🧨 WIPE ALL STUDENTS
+  </button>
+
   <p id="uploadStatus" style="font-weight:bold;"></p>
 </div>
+
+<div class="card">
+  <h3>📋 Student Master List</h3>
+
+  <button class="btn-main" onclick="toggleStudentList()">
+    👁 Show / Hide Student List
+  </button>
+
+  <div id="studentListWrapper" class="hidden" style="margin-top:15px">
+    <div style="overflow-x:auto">
+      <table>
+        <thead>
+          <tr>
+            <th>Class</th>
+            <th>STS No</th>
+            <th>Name</th>
+            <th>Father</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody id="studentList"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+
+
 
         <div class="card">
             <h3>🔍 Search & Filter</h3>
@@ -349,6 +395,24 @@
             <button onclick="toggleAdminModal()" style="background:none; color:gray;">Close</button>
         </div>
     </div>
+    <!-- EDIT STUDENT MODAL -->
+<div id="editStudentModal" class="hidden"
+style="position:fixed;inset:0;background:rgba(0,0,0,0.7);
+display:flex;align-items:center;justify-content:center;z-index:2000">
+
+  <div style="background:white;padding:25px;border-radius:15px;width:300px">
+    <h3>Edit Student</h3>
+
+    <input id="editClass" placeholder="Class">
+    <input id="editRoll" placeholder="STS No" disabled>
+    <input id="editName" placeholder="Student Name">
+    <input id="editFather" placeholder="Father Name">
+
+    <button class="btn-main" onclick="updateStudent()">Update</button>
+    <button onclick="closeEditStudent()" style="background:#ccc">Cancel</button>
+  </div>
+</div>
+
 
 <script>
 let studentVerified = false;
@@ -399,6 +463,7 @@ function checkPassword(){
             document.getElementById('scorePage').classList.remove('hidden');
             loadLeaderboard();
             loadScheduleInputs();
+
         } else { alert("Wrong Password!"); }
     }
 
@@ -830,9 +895,136 @@ function handleClassChange() {
         rollInput.disabled = true;
     }
 }
+// 📋 LOAD STUDENT MASTER LIST
+async function loadStudentsList() {
+  const snap = await db.collection("students").orderBy("class").get();
+  document.getElementById("studentList").innerHTML = snap.docs.map(d => {
+    const s = d.data();
+    return `
+      <tr>
+        <td>${s.class}</td>
+        <td>${s.roll}</td>
+        <td>${s.name}</td>
+        <td>${s.father}</td>
+        <td>
+          <button style="background:orange;font-size:12px"
+            onclick="openEditStudent('${d.id}','${s.class}','${s.roll}','${s.name}','${s.father}')">
+            Edit
+          </button>
+          <button style="background:red;color:white;font-size:12px"
+            onclick="deleteStudent('${d.id}')">
+            Delete
+          </button>
+        </td>
+      </tr>`;
+  }).join("");
+}
+
+
+// ❌ DELETE SINGLE STUDENT
+async function deleteStudent(id) {
+  if (!confirm("Delete this student?")) return;
+  await db.collection("students").doc(id).delete();
+  loadStudentsList();
+}
+
+// ➕ ADD SINGLE STUDENT
+async function addSingleStudent() {
+  const cls = document.getElementById("addClass").value.trim();
+  const roll = document.getElementById("addRoll").value.trim();
+  const name = document.getElementById("addName").value.trim().toUpperCase();
+  const father = document.getElementById("addFather").value.trim().toUpperCase();
+
+  if (!cls || roll.length !== 9 || !name || !father) {
+    alert("Fill all fields correctly");
+    return;
+  }
+
+  const id = `${cls}_${roll}`;
+  const ref = db.collection("students").doc(id);
+  const snap = await ref.get();
+
+  if (snap.exists) {
+    alert("Student already exists");
+    return;
+  }
+
+  await ref.set({ class: cls, roll, name, father });
+  alert("Student Added");
+
+  document.getElementById("addClass").value = "";
+  document.getElementById("addRoll").value = "";
+  document.getElementById("addName").value = "";
+  document.getElementById("addFather").value = "";
+
+  loadStudentsList();
+}
+
+// 🧨 WIPE ALL STUDENTS
+async function wipeAllStudents() {
+  if (!confirm("⚠️ This will DELETE ALL STUDENTS. Continue?")) return;
+
+  const snap = await db.collection("students").get();
+  const batch = db.batch();
+  snap.docs.forEach(doc => batch.delete(doc.ref));
+  await batch.commit();
+
+  alert("All students deleted");
+  loadStudentsList();
+}
+let editStudentId = "";
+
+// ✏️ OPEN EDIT MODAL
+function openEditStudent(id, cls, roll, name, father) {
+  editStudentId = id;
+  document.getElementById("editClass").value = cls;
+  document.getElementById("editRoll").value = roll;
+  document.getElementById("editName").value = name;
+  document.getElementById("editFather").value = father;
+  document.getElementById("editStudentModal").classList.remove("hidden");
+}
+
+// ❌ CLOSE MODAL
+function closeEditStudent() {
+  document.getElementById("editStudentModal").classList.add("hidden");
+}
+
+// 💾 UPDATE STUDENT
+async function updateStudent() {
+  const cls = document.getElementById("editClass").value.trim();
+  const name = document.getElementById("editName").value.trim().toUpperCase();
+  const father = document.getElementById("editFather").value.trim().toUpperCase();
+
+  if (!cls || !name || !father) {
+    alert("Fill all fields");
+    return;
+  }
+
+  await db.collection("students").doc(editStudentId).update({
+    class: cls,
+    name: name,
+    father: father
+  });
+
+  alert("Student Updated");
+  closeEditStudent();
+  loadStudentsList();
+}
+function toggleStudentList() {
+  const box = document.getElementById("studentListWrapper");
+
+  if (box.classList.contains("hidden")) {
+    box.classList.remove("hidden");
+    loadStudentsList(); // load only when opened
+  } else {
+    box.classList.add("hidden");
+  }
+}
+
 
 </script>
 </body>
 </html>
+
 
 
