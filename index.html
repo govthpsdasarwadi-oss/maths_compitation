@@ -1020,11 +1020,16 @@ function toggleStudentList() {
     box.classList.add("hidden");
   }
 }
+ document.addEventListener("contextmenu", function (e) {
+    e.preventDefault();
 
+    alert("⚠️ Right-click is disabled!\n\nThis quiz allows only one fair attempt.\nPlease answer honestly 🙏");
+  });
 
 </script>
 </body>
 </html>
+
 
 
 
