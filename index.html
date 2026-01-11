@@ -469,56 +469,70 @@ function checkPassword(){
 
     // 3. QUIZ CONTENT
     const questions = [
-    { q: "ಭಾರತದ ಪ್ರಥಮ ಪ್ರಜೆ ಯಾರು?", options: ["ಪ್ರಧಾನ ಮಂತ್ರಿ", "ರಾಷ್ಟ್ರಪತಿ", "ರಾಜ್ಯಪಾಲರು", "ಮುಖ್ಯ ನ್ಯಾಯಾಧೀಶರು"], a: "ರಾಷ್ಟ್ರಪತಿ" },
-    { q: "ಕರ್ನಾಟಕದ ರಾಜ್ಯ ಪ್ರಾಣಿ ಯಾವುದು?", options: ["ಹುಲಿ", "ಸಿಂಹ", "ಆನೆ", "ಜಿಂಕೆ"], a: "ಆನೆ" },
-    { q: "ವಿಶ್ವ ಪರಿಸರ ದಿನವನ್ನು ಯಾವಾಗ ಆಚರಿಸಲಾಗುತ್ತದೆ?", options: ["ಜೂನ್ 5", "ಜೂನ್ 15", "ಆಗಸ್ಟ್ 15", "ಜನವರಿ 26"], a: "ಜೂನ್ 5" },
-    { q: "ಸೂರ್ಯನಿಗೆ ಅತ್ಯಂತ ಹತ್ತಿರವಿರುವ ಗ್ರಹ ಯಾವುದು?", options: ["ಶುಕ್ರ", "ಮಂಗಳ", "ಬುಧ", "ಗುರು"], a: "ಬುಧ" },
-    { q: "ಭಾರತದ ಸಂವಿಧಾನದ ಪಿತಾಮಹ ಯಾರು?", options: ["ಗಾಂಧೀಜಿ", "ನೆಹರು", "ಬಿ.ಆರ್. ಅಂಬೇಡ್ಕರ್", "ಸದಾರ್ ಪಟೇಲ್"], a: "ಬಿ.ಆರ್. ಅಂಬೇಡ್ಕರ್" },
-    { q: "ವಿಶ್ವದ ಅತಿ ಎತ್ತರದ ಶಿಖರ ಯಾವುದು?", options: ["ಕೆ2", "ಮೌಂಟ್ ಎವರೆಸ್ಟ್", "ಕಾಂಚನಜುಂಗಾ", "ನಂದಾದೇವಿ"], a: "ಮೌಂಟ್ ಎವರೆಸ್ಟ್" },
-    { q: "ಮಾನವ ದೇಹದಲ್ಲಿರುವ ಒಟ್ಟು ಮೂಳೆಗಳ ಸಂಖ್ಯೆ ಎಷ್ಟು?", options: ["200", "206", "210", "250"], a: "206" },
-    { q: "ಕರ್ನಾಟಕದ ಅತಿ ಎತ್ತರದ ಶಿಖರ ಯಾವುದು?", options: ["ಕುದುರೆಮುಖ", "ಮುಳ್ಳಯ್ಯನಗಿರಿ", "ಬಾಬಾಬುಡನ್ ಗಿರಿ", "ಕೊಡಚಾದ್ರಿ"], a: "ಮುಳ್ಳಯ್ಯನಗಿರಿ" },
-    { q: "ಗಾಂಧೀಜಿಯವರು ಜನಿಸಿದ ಸ್ಥಳ ಯಾವುದು?", options: ["ರಾಜಕೋಟ್", "ಅಹಮದಾಬಾದ್", "ಪೋರಬಂದರ್", "ಸೂರತ್"], a: "ಪೋರಬಂದರ್" },
-    { q: "ಭಾರತದ ರಾಷ್ಟ್ರೀಯ ಹಕ್ಕಿ ಯಾವುದು?", options: ["ಗಿಳಿ", "ನವಿಲು", "ಕೋಗಿಲೆ", "ಹದ್ದು"], a: "ನವಿಲು" },
-    { q: "ಸೊನ್ನೆಯನ್ನು (Zero) ಕಂಡುಹಿಡಿದವರು ಯಾರು?", options: ["ಭಾಸ್ಕರಾಚಾರ್ಯ", "ಆರ್ಯಭಟ", "ಚರಕ", "ವರಾಹಮಿಹಿರ"], a: "ಆರ್ಯಭಟ" },
-    { q: "ಕರ್ನಾಟಕದ ಉದ್ಯಾನ ನಗರಿ ಎಂದು ಯಾವುದನ್ನು ಕರೆಯುತ್ತಾರೆ?", options: ["ಮೈಸೂರು", "ಬೆಂಗಳೂರು", "ಮಂಗಳೂರು", "ಶಿವಮೊಗ್ಗ"], a: "ಬೆಂಗಳೂರು" },
-    { q: "ವಂದೇ ಮಾತರಂ ಗೀತೆಯನ್ನು ಬರೆದವರು ಯಾರು?", options: ["ಟ್ಯಾಗೋರ್", "ಕುವೆಂಪು", "ಬಂಕಿಮಚಂದ್ರ ಚಟರ್ಜಿ", "ಬೇಂದ್ರೆ"], a: "ಬಂಕಿಮಚಂದ್ರ ಚಟರ್ಜಿ" },
-    { q: "ಭೂಮಿಯ ಮೇಲೆ ಅತಿ ವೇಗವಾಗಿ ಓಡುವ ಪ್ರಾಣಿ?", options: ["ಕುದುರೆ", "ಚಿರತೆ", "ಹುಲಿ", "ಸಿಂಹ"], a: "ಚಿರತೆ" },
-    { q: "ಕಂಪ್ಯೂಟರ್ ಕಂಡುಹಿಡಿದವರು ಯಾರು?", options: ["ನ್ಯೂಟನ್", "ಐನ್ಸ್ಟೈನ್", "ಚಾರ್ಲ್ಸ್ ಬ್ಯಾಬೇಜ್", "ಎಡಿಸನ್"], a: "ಚಾರ್ಲ್ಸ್ ಬ್ಯಾಬೇಜ್" },
-    { q: "ಜೈ ಹಿಂದ್ ಘೋಷಣೆ ನೀಡಿದವರು ಯಾರು?", options: ["ಸುಭಾಷ್ ಚಂದ್ರ ಬೋಸ್", "ಗಾಂಧೀಜಿ", "ಭಗತ್ ಸಿಂಗ್", "ನೆಹರು"], a: "ಸುಭಾಷ್ ಚಂದ್ರ ಬೋಸ್" },
-    { q: "ವಿದ್ಯುತ್ ಬಲ್ಬ್ ಕಂಡುಹಿಡಿದವರು ಯಾರು?", options: ["ಗ್ರಹಾಂ ಬೆಲ್", "ಥಾಮಸ್ ಅಲ್ವಾ ಎಡಿಸನ್", "ನ್ಯೂಟನ್", "ವಾಟ್"], a: "ಥಾಮಸ್ ಅಲ್ವಾ ಎಡಿಸನ್" },
-    { q: "ಕರ್ನಾಟಕದ ರಾಜ್ಯ ಪುಷ್ಪ ಯಾವುದು?", options: ["ಗುಲಾಬಿ", "ಸೂರ್ಯಕಾಂತಿ", "ಕಮಲ", "ಮಲ್ಲಿಗೆ"], a: "ಕಮಲ" },
-    { q: "ಭಾರತದ ಕಬ್ಬಿಣದ ಮನುಷ್ಯ ಯಾರು?", options: ["ಲಾಲಾ ಲಜಪತ ರಾಯ್", "ಸರ್ದಾರ್ ಪಟೇಲ್", "ತಿಲಕ್", "ನೇತಾಜಿ"], a: "ಸರ್ದಾರ್ ಪಟೇಲ್" },
-    { q: "ವಿಶ್ವದ ಅತಿ ದೊಡ್ಡ ಖಂಡ ಯಾವುದು?", options: ["ಆಫ್ರಿಕಾ", "ಯುರೋಪ್", "ಏಷ್ಯಾ", "ಅಮೆರಿಕಾ"], a: "ಏಷ್ಯಾ" },
-    { q: "ಬೆಳಕಿನ ವೇಗ ಸೆಕೆಂಡಿಗೆ ಸುಮಾರು ಎಷ್ಟು?", options: ["1 ಲಕ್ಷ ಕಿಮೀ", "2 ಲಕ್ಷ ಕಿಮೀ", "3 ಲಕ್ಷ ಕಿಮೀ", "4 ಲಕ್ಷ ಕಿಮೀ"], a: "3 ಲಕ್ಷ ಕಿಮೀ" },
-    { q: "ಗಿಡದ ಯಾವ ಭಾಗ ಆಹಾರ ತಯಾರಿಸುತ್ತದೆ?", options: ["ಬೇರು", "ಹೂವು", "ಎಲೆ", "ಕಾಂಡ"], a: "ಎಲೆ" },
-    { q: "ಇನ್ಸುಲಿನ್ ಕೊರತೆಯಿಂದ ಬರುವ ಕಾಯಿಲೆ ಯಾವುದು?", options: ["ಕ್ಯಾನ್ಸರ್", "ಮಧುಮೇಹ (Sugar)", "ಕ್ಷಯ", "ರಕ್ತಹೀನತೆ"], a: "ಮಧುಮೇಹ (Sugar)" },
-    { q: "ಕನ್ನಡದ ಮೊದಲ ಕವಿ ಯಾರು?", options: ["ಪಂಪ", "ರನ್ನ", "ಪೊನ್ನ", "ಜನ್ನ"], a: "ಪಂಪ" },
-    { q: "ಭಾರತದ ಮೊದಲ ಮಹಿಳಾ ಪ್ರಧಾನ ಮಂತ್ರಿ ಯಾರು?", options: ["ಪ್ರತಿಭಾ ಪಾಟೀಲ್", "ಇಂದಿರಾ ಗಾಂಧಿ", "ಸರೋಜಿನಿ ನಾಯ್ಡು", "ಕಿರಣ್ ಬೇಡಿ"], a: "ಇಂದಿರಾ ಗಾಂಧಿ" },
-    { q: "ಭಾರತದ ಅತ್ಯುನ್ನತ ನಾಗರಿಕ ಪ್ರಶಸ್ತಿ ಯಾವುದು?", options: ["ಪದ್ಮಭೂಷಣ", "ಪರಮವೀರ ಚಕ್ರ", "ಭಾರತ ರತ್ನ", "ಜ್ಞಾನಪೀಠ"], a: "ಭಾರತ ರತ್ನ" },
-    { q: "ರಾಮಾಯಣ ಬರೆದವರು ಯಾರು?", options: ["ವ್ಯಾಸರು", "ವಾಲ್ಮೀಕಿ", "ತುಳಸೀದಾಸರು", "ಕಾಳಿದಾಸ"], a: "ವಾಲ್ಮೀಕಿ" },
-    { q: "ಚಂದ್ರನ ಮೇಲೆ ಕಾಲಿಟ್ಟ ಮೊದಲ ಮಾನವ?", options: ["ನೀಲ್ ಆರ್ಮ್ ಸ್ಟ್ರಾಂಗ್", "ಯೂರಿ ಗಗಾರಿನ್", "ರಾಕೇಶ್ ಶರ್ಮ", "ಅಲ್ಡ್ರಿನ್"], a: "ನೀಲ್ ಆರ್ಮ್ ಸ್ಟ್ರಾಂಗ್" },
-    { q: "ಕ್ರಿಕೆಟ್ ಆಟದಲ್ಲಿ ಎಷ್ಟು ಆಟಗಾರರು ಇರುತ್ತಾರೆ?", options: ["9", "10", "11", "12"], a: "11" },
-    { q: "ದೂರದರ್ಶಕ (Telescope) ಕಂಡುಹಿಡಿದವರು?", options: ["ಗ್ಯಾಲಿಲಿಯೋ", "ನ್ಯೂಟನ್", "ಡಾಲ್ಟನ್", "ಪಾಸ್ಟರ್"], a: "ಗ್ಯಾಲಿಲಿಯೋ" },
-    { q: "ಕರ್ನಾಟಕದ ಕುಲಪುರೋಹಿತ ಎಂದು ಯಾರನ್ನು ಕರೆಯುತ್ತಾರೆ?", options: ["ಆಲೂರು ವೆಂಕಟರಾಯರು", "ಕುವೆಂಪು", "ಕಾರಂತರು", "ಬಿ.ಎಂ.ಶ್ರೀ"], a: "ಆಲೂರು ವೆಂಕಟರಾಯರು" },
-    { q: "ಸೌರವ್ಯೂಹದ ಅತಿ ದೊಡ್ಡ ಗ್ರಹ ಯಾವುದು?", options: ["ಶನಿ", "ಗುರು", "ಯುರೇನಸ್", "ನೆಪ್ಚೂನ್"], a: "ಗುರು" },
-    { q: "ಒಲಿಂಪಿಕ್ ಧ್ವಜದಲ್ಲಿ ಎಷ್ಟು ಉಂಗುರಗಳಿವೆ?", options: ["4", "5", "6", "3"], a: "5" },
-    { q: "ಭಾರತದ ರಾಷ್ಟ್ರೀಯ ನದಿ ಯಾವುದು?", options: ["ಕಾವೇರಿ", "ಯಮುನಾ", "ಗಂಗಾ", "ಬ್ರಹ್ಮಪುತ್ರ"], a: "ಗಂಗಾ" },
-    { q: "ಸಕ್ಕರೆ ಕಾಯಿಲೆಗೆ ಚಿಕಿತ್ಸೆ ನೀಡಲು ಬಳಸುವ ಹಾರ್ಮೋನ್?", options: ["ಥೈರಾಕ್ಸಿನ್", "ಇನ್ಸುಲಿನ್", "ಅಡ್ರಿನಾಲಿನ್", "ಈಸ್ಟ್ರೋಜನ್"], a: "ಇನ್ಸುಲಿನ್" },
-    { q: "ಭೂಮಿ ತನ್ನ ಅಕ್ಷದ ಮೇಲೆ ಸುತ್ತುವುದಕ್ಕೆ ಏನೆನ್ನುತ್ತಾರೆ?", options: ["ಪರಿಭ್ರಮಣೆ", "ಭ್ರಮಣೆ", "ಗ್ರಹಣ", "ಚಲನೆ"], a: "ಭ್ರಮಣೆ" },
-    { q: "ಗಡಿಯಾರದಲ್ಲಿ ಎಷ್ಟು ಸೆಕೆಂಡ್ ಮುಳ್ಳು ಇರುತ್ತದೆ?", options: ["1", "2", "3", "0"], a: "1" },
-    { q: "ಲೋಹಗಳಲ್ಲಿ ಅತಿ ಹಗುರವಾದ ಲೋಹ ಯಾವುದು?", options: ["ಚಿನ್ನ", "ಲಿಥಿಯಂ", "ಕಬ್ಬಿಣ", "ಅಲ್ಯೂಮಿನಿಯಂ"], a: "ಲಿಥಿಯಂ" },
-    { q: "ಗಣರಾಜ್ಯೋತ್ಸವವನ್ನು ಯಾವಾಗ ಆಚರಿಸಲಾಗುತ್ತದೆ?", options: ["ಆಗಸ್ಟ್ 15", "ಜನವರಿ 26", "ಅಕ್ಟೋಬರ್ 2", "ನವೆಂಬರ್ 1"], a: "ಜನವರಿ 26" },
-    { q: "ಕನ್ನಡದ ಮೊದಲ ವೃತ್ತಪತ್ರಿಕೆ ಯಾವುದು?", options: ["ಸಂಯುಕ್ತ ಕರ್ನಾಟಕ", "ಮಂಗಳೂರು ಸಮಾಚಾರ", "ಪ್ರಜಾವಾಣಿ", "ವಿಜಯವಾಣಿ"], a: "ಮಂಗಳೂರು ಸಮಾಚಾರ" },
-    { q: "ಭಾರತದ ರಾಷ್ಟ್ರೀಯ ಕ್ರೀಡೆ ಯಾವುದು?", options: ["ಕ್ರಿಕೆಟ್", "ಕಬಡ್ಡಿ", "ಹಾಕಿ", "ಫುಟ್ಬಾಲ್"], a: "ಹಾಕಿ" },
-    { q: "ಮಾನವನ ರಕ್ತದ ಬಣ್ಣ ಕೆಂಪು ಇರಲು ಕಾರಣವೇನು?", options: ["ಕ್ಲೋರೋಫಿಲ್", "ಹಿಮೋಗ್ಲೋಬಿನ್", "ಪ್ಲಾಸ್ಮಾ", "ನೈಟ್ರೋಜನ್"], a: "ಹಿಮೋಗ್ಲೋಬಿನ್" },
-    { q: "ಭಾರತದ ಪ್ರಥಮ ಮಹಿಳಾ ಶಿಕ್ಷಕಿ ಎಂದು ಯಾರನ್ನು ಕರೆಯುತ್ತಾರೆ?", options: ["ಸರೋಜಿನಿ ನಾಯ್ಡು", "ಸಾವಿತ್ರಿಬಾಯಿ ಫುಲೆ", "ವಿಜಯಲಕ್ಷ್ಮಿ ಪಂಡಿತ್", "ಫಾತಿಮಾ ಶೇಖ್"], a: "ಸಾವಿತ್ರಿಬಾಯಿ ಫುಲೆ" },
-    { q: "ಸಾವಿತ್ರಿಬಾಯಿ ಫುಲೆ ಅವರು ಯಾವ ರಾಜ್ಯದಲ್ಲಿ ಜನಿಸಿದರು?", options: ["ಕರ್ನಾಟಕ", "ಮಹಾರಾಷ್ಟ್ರ", "ಗುಜರಾತ್", "ಮಧ್ಯಪ್ರದೇಶ"], a: "ಮಹಾರಾಷ್ಟ್ರ" },
-    { q: "ಸಾವಿತ್ರಿಬಾಯಿ ಫುಲೆ ಅವರ ಪತಿಯ ಹೆಸರೇನು?", options: ["ಮಹಾತ್ಮ ಜ್ಯೋತಿಬಾ ಫುಲೆ", "ದಾದಾಬಾಯಿ ನವರೋಜಿ", "ಗೋಪಾಲ ಕೃಷ್ಣ ಗೋಖಲೆ", "ಜಸ್ಟಿಸ್ ರಾನಡೆ"], a: "ಮಹಾತ್ಮ ಜ್ಯೋತಿಬಾ ಫುಲೆ" },
-    { q: "ಸಾವಿತ್ರಿಬಾಯಿ ಫುಲೆ ಅವರು ಬರೆದ ಮೊದಲ ಕವನ ಸಂಕಲನ ಯಾವುದು?", options: ["ಕಾವ್ಯ ಫುಲೆ", "ಬಾವನಕಾಶಿ ಸುಬೋದ ರತ್ನಾಕರ್", "ಗೀತಾಂಜಲಿ", "ಸ್ತ್ರೀ ಧರ್ಮ ನೀತಿ"], a: "ಕಾವ್ಯ ಫುಲೆ" },
-    { q: "ಸಾವಿತ್ರಿಬಾಯಿ ಮತ್ತು ಜ್ಯೋತಿಬಾ ಫುಲೆ ಅವರು ಅಸ್ಪೃಶ್ಯರಿಗಾಗಿ ಕುಡಿಯುವ ನೀರಿನ ಟ್ಯಾಂಕ್ ಅನ್ನು ಎಲ್ಲಿ ತೆರೆದರು?", options: ["ತಮ್ಮ ಸ್ವಂತ ಮನೆಯಲ್ಲಿ", "ಸಾರ್ವಜನಿಕ ಮೈದಾನದಲ್ಲಿ", "ದೇವಸ್ಥಾನದ ಮುಂದೆ", "ಶಾಲೆಯ ಆವರಣದಲ್ಲಿ"], a: "ತಮ್ಮ ಸ್ವಂತ ಮನೆಯಲ್ಲಿ" },
-    { q: "ಸಾವಿತ್ರಿಬಾಯಿ ಅವರು ಯಾವ ಸಾಂಕ್ರಾಮಿಕ ರೋಗದ ಸಮಯದಲ್ಲಿ ಜನರಿಗೆ ಸೇವೆ ಸಲ್ಲಿಸುತ್ತಾ ಪ್ರಾಣತ್ಯಾಗ ಮಾಡಿದರು?", options: ["ಕಲರಾ", "ಪ್ಲೇಗ್ (Plague)", "ಸಿಡುಬು", "ಕ್ಷಯ ರೋಗ"], a: "ಪ್ಲೇಗ್ (Plague)" },
-    { q: "2014 ರಲ್ಲಿ ಯಾವ ವಿಶ್ವವಿದ್ಯಾಲಯಕ್ಕೆ ಸಾವಿತ್ರಿಬಾಯಿ ಫುಲೆ ಅವರ ಹೆಸರನ್ನು ಇಡಲಾಯಿತು?", options: ["ಮುಂಬೈ ವಿಶ್ವವಿದ್ಯಾಲಯ", "ದೆಹಲಿ ವಿಶ್ವವಿದ್ಯಾಲಯ", "ಪುಣೆ ವಿಶ್ವವಿದ್ಯಾಲಯ", "ಮೈಸೂರು ವಿಶ್ವವಿದ್ಯಾಲಯ"], a: "ಪುಣೆ ವಿಶ್ವವಿದ್ಯಾಲಯ" },
-    { q: "ಹೆಣ್ಣು ಮಕ್ಕಳಿಗಾಗಿ ಮೊದಲ ಶಾಲೆಯನ್ನು ಎಲ್ಲಿ ಪ್ರಾರಂಭಿಸಲಾಯಿತು?", options: ["ಮುಂಬೈ", "ಪುಣೆ", "ಬೆಂಗಳೂರು", "ದೆಹಲಿ"], a: "ಪುಣೆ" },
+  // --- 5 SILENT WORDS (Silent Letters) ---
+  { q: "Which letter is silent in the word 'Knee'?", options: ["N", "e", "K", "None"], a: "K" },
+  { q: "Which letter is silent in the word 'Wrist'?", options: ["W", "r", "s", "t"], a: "W" },
+  { q: "Which letter is silent in the word 'Listen'?", options: ["L", "s", "t", "e"], a: "t" },
+  { q: "Which letter is silent in the word 'Comb'?", options: ["C", "o", "m", "b"], a: "b" },
+  { q: "Which letter is silent in the word 'Honest'?", options: ["H", "o", "n", "s"], a: "H" },
+
+  // --- 15 ENGLISH TO KANNADA MEANING ---
+  { q: "What is the Kannada word for 'Water'?", options: ["ಊಟ ", "ನೀರು", "ಹಾಲು", "ಹಣ್ಣು"], a: "ನೀರು" },
+  { q: "What is the Kannada word for 'School'?", options: ["ಮನೆ", "ಶಾಲೆ", "ಊರು", "ಕೆಲಸ"], a: "ಶಾಲೆ" },
+  { q: "What is the Kannada word for 'Friend'?", options: ["ಸ್ನೇಹಿತ", "ಶತ್ರು", "ಗುರು", "ರಾಜ"], a: "ಸ್ನೇಹಿತ" },
+  { q: "What is the Kannada word for 'Book'?", options: ["ಪೆನ್ನು", "ಚೀಲ", "ಪುಸ್ತಕ", "ಮೇಜು"], a: "ಪುಸ್ತಕ" },
+  { q: "What is the Kannada word for 'Sun'?", options: ["ಚಂದ್ರ", "ಸೂರ್ಯ", "ತಾರೆ", "ಆಕಾಶ"], a: "ಸೂರ್ಯ" },
+  { q: "What is the Kannada word for 'Mother'?", options: ["ತಂದೆ", "ಅಮ್ಮ", "ಅಕ್ಕ", "ಅಣ್ಣ"], a: "ಅಮ್ಮ" },
+  { q: "What is the Kannada word for 'Flower'?", options: ["ಎಲೆ", "ಗಿಡ", "ಹೂವು", "ಬಳ್ಳಿ"], a: "ಹೂವು" },
+  { q: "What is the Kannada word for 'Milk'?", options: ["ಮೊಸರು", "ತುಪ್ಪ", "ನೀರು", "ಹಾಲು"], a: "ಹಾಲು" },
+  { q: "What is the Kannada word for 'Eye'?", options: ["ಕಿವಿ", "ಮೂಗು", "ಕಣ್ಣು", "ಬಾಯಿ"], a: "ಕಣ್ಣು" },
+  { q: "What is the Kannada word for 'Tree'?", options: ["ಗಿಡ", "ಮರ", "ಹಣ್ಣು", "ಕಾಡು"], a: "ಮರ" },{ q: "What is the Kannada word for 'To Eat'?", options: ["ಓದು", "ತಿನ್ನು", "ನಗು", "ಮಲಗು"], a: "ತಿನ್ನು" },
+  { q: "What is the Kannada word for 'Sleep'?", options: ["ನಡೆಯು", "ಓಡು", "ಮಲಗು", "ಹಾಡು"], a: "ಮಲಗು" },
+  { q: "What is the Kannada word for 'Play'?", options: ["ಆಡು", "ಬರೆ", "ಕೇಳು", "ನೋಡು"], a: "ಆಡು" },
+  { q: "What is the Kannada word for 'Come'?", options: ["ಹೋಗು", "ಬಾ", "ಕುಳಿತುಕೊ", "ನಿಲ್ಲು"], a: "ಬಾ" },
+  { q: "What is the Kannada word for 'Read'?", options: ["ಮಾತನಾಡು", "ಕೇಳು", "ಓದು", "ಹಾಡು"], a: "ಓದು" },
+
+  // --- 5 OPPOSITE WORDS ---
+  { q: "What is the opposite of 'Difficult'?", options: ["Hard", "Easy", "Simple", "Soft"], a: "Easy" },
+  { q: "What is the opposite of 'Good'?", options: ["Strong", "Bad", "Hero", "Bold"], a: "Bad" },
+  { q: "What is the opposite of 'Up'?", options: ["Thin", "Small", "Down", "Long"], a: "Down" },
+  { q: "What is the opposite of 'Day'?", options: ["Reach", "Stay", "Night", "Come"], a: "Night" },
+  { q: "What is the opposite of 'old'?", options: ["Best", "New", "Sweet", "Clean"], a: "New" },
+
+  // --- 5 FIND ODD ONE OUT ---
+  { q: "Find the odd one out:", options: ["Tiger", "Lion", "Leopard", "Cow"], a: "Cow" },
+  { q: "Find the odd one out:", options: ["Circle", "Square", "Blue", "Triangle"], a: "Blue" },
+  { q: "Find the odd one out:", options: ["Doctor", "Nurse", "Patient", "Teacher"], a: "Teacher" },
+  { q: "Find the odd one out:", options: ["Monday", "January", "March", "June"], a: "Monday" },
+  { q: "Find the odd one out:", options: ["Apple", "Carrot", "Mango", "Banana"], a: "Carrot" },
+
+  // --- 5 CORRECT SPELLING ---
+  { q: "Which of these is the correct spelling?", options: ["Beleive", "Believe", "Belive", "Beleeve"], a: "Believe" },
+  { q: "Which of these is the correct spelling?", options: ["Tommorow", "Tomorrow", "Tomoro", "To-morrow"], a: "Tomorrow" },
+  { q: "Which of these is the correct spelling?", options: ["Beautiful", "Beatiful", "Beatiful", "Butiful"], a: "Beautiful" },
+  { q: "Which of these is the correct spelling?", options: ["Next", "Nixt", "Nest", "Neeset"], a: "Next" },
+  { q: "Which of these is the correct spelling?", options: ["Febuary", "Feburary", "February", "Februery"], a: "February" },
+
+  // --- 5 PLURAL WORDS ---
+  { q: "What is the plural of 'Knife'?", options: ["Knifes", "Knive", "Knives", "Knifey"], a: "Knives" },
+  { q: "What is the plural of 'Potato'?", options: ["Potatos", "Potatoes", "Potatose", "Potatoe"], a: "Potatoes" },
+  { q: "What is the plural of 'Foot'?", options: ["Foots", "Feets", "Feet", "Footes"], a: "Feet" },
+  { q: "What is the plural of 'Box'?", options: ["Boxs", "Boxes", "Boxen", "Boxies"], a: "Boxes" },
+  { q: "What is the plural of 'Fish'?", options: ["Fishes", "Fish", "Fishs", "Both"], a: "Both" },
+
+  // --- 5 AFTER & BEFORE ---
+  { q: "Which letter comes before 'M' in the alphabet?", options: ["L", "N", "K", "O"], a: "L" },
+  { q: "Which number comes after 99?", options: ["98", "100", "101", "90"], a: "100" },
+  { q: "Which day comes before Wednesday?", options: ["Tuesday", "Thursday", "Monday", "Friday"], a: "Tuesday" },
+  { q: "Which month comes after August?", options: ["July", "September", "October", "November"], a: "September" },
+  { q: "Which letter comes before 'X'?", options: ["Y", "W", "V", "Z"], a: "W" },
+
+  // --- 5 COMPLETE THE WORD (Filling in the Gaps) ---
+  { q: "Complete the word: B _ _ T H D A Y", options: ["I, R", "E, R", "U, R", "O, R"], a: "I, R" },
+  { q: "Complete the word: C _ _ C K E N", options: ["H, I", "H, E", "K, I", "S, I"], a: "H, I" },
+  { q: "Complete the word: S _ H _ _ L", options: ["C, O, O", "K, O, O", "H, O, O", "C, U, U"], a: "C, O, O" },
+  { q: "Complete the word: M _ _ N T A I N", options: ["O, U", "A, U", "O, A", "U, U"], a: "O, U" },
+  { q: "Complete the word: V _ G _ T A B L E", options: ["E, E", "A, E", "I, E", "E, I"], a: "E, E" }
 ];
 
 
@@ -1029,6 +1043,7 @@ function toggleStudentList() {
 </script>
 </body>
 </html>
+
 
 
 
